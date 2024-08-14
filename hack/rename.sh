@@ -15,6 +15,7 @@ sed -i "s~repositoryUrl\": \".*\",$~repositoryUrl\": \"https://$repo\",~g" .rele
 # and in the docker build steps
 sed -i "s~ghcr.io/henrywhitaker3/go-template~ghcr.io/$repoName~g" .github/workflows/test.yaml
 sed -i "s~ghcr.io/henrywhitaker3/go-template~ghcr.io/$repoName~g" .github/workflows/release.yaml
+sed -i "s~ghcr.io/henrywhitaker3/go-template~ghcr.io/$repoName~g" chart/values.yaml
 
 # Update the go.mod file
 sed -i "s~module github.com/henrywhitaker3/go-template~module $repo~g" go.mod
@@ -27,6 +28,9 @@ sed -i "s~Go Template~$name~g" bruno/bruno.json
 sed -i "s~go-template~$name~g" api.example.yaml
 
 # Now do the default config file location
+sed -i "s~go-template~$baseName~g" chart/values.yaml
+sed -i "s~go-template~$baseName~g" chart/Chart.yaml
+sed -i "s~go-template~$baseName~g" .github/workflows/chart.yaml
 sed -i "s~go-template.yaml~$baseName.yaml~g" main.go
 sed -i "s~go-template.yaml~$baseName.yaml~g" docker-compose.yaml
 sed -i "s~go-template.yaml~$baseName.yaml~g" cmd/root/root.go
