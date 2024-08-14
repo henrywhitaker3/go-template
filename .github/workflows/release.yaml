@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +32,8 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           PULL_REQUEST: ${{ steps.pr.outputs.pull-request-number }}
+          MERGE_RETRIES: 10
+          MERGE_RETRY_SLEEP: 30000
 
       - name: Get chart version
         run: |
