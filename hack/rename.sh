@@ -27,9 +27,10 @@ sed -i "s~Go Template~$name~g" bruno/bruno.json
 sed -i "s~go-template~$name~g" api.example.yaml
 
 # Now do the default config file location
-sed -i "s~api.yaml~$baseName.yaml~g" main.go
-sed -i "s~api.yaml~$baseName.yaml~g" docker-compose.yaml
+sed -i "s~go-template.yaml~$baseName.yaml~g" main.go
+sed -i "s~go-template.yaml~$baseName.yaml~g" docker-compose.yaml
+sed -i "s~go-template.yaml~$baseName.yaml~g" cmd/root/root.go
 sed -i "s~*go-template~*$baseName~g" internal/test/app.go
-sed -i "s~api.example.yaml~$baseName.example.yaml~g" internal/test/app.go
-mv api.example.yaml "$baseName.example.yaml"
+sed -i "s~go-template.example.yaml~$baseName.example.yaml~g" internal/test/app.go
+mv go-template.example.yaml "$baseName.example.yaml"
 echo "$baseName.yaml" >> .gitignore

@@ -97,7 +97,7 @@ func getConfigPath() string {
 			return os.Args[i+1]
 		}
 	}
-	return "api.yaml"
+	return "go-template.yaml"
 }
 
 func noConfigHelp() {
@@ -105,7 +105,7 @@ func noConfigHelp() {
 	api [command]
 
 Flags:
-	-c, --config	The path to the api config file (default: api.yaml)
+	-c, --config	The path to the api config file (default: go-template.yaml)
 	`
 	fmt.Println(help)
 	os.Exit(3)

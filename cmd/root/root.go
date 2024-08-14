@@ -17,7 +17,7 @@ func New(app *app.App) *cobra.Command {
 	cmd.AddCommand(serve.New(app))
 	cmd.AddCommand(migrate.New(app))
 
-	cmd.PersistentFlags().StringP("config", "c", "api.yaml", "The path to the api config file")
+	cmd.PersistentFlags().StringP("config", "c", "go-template.yaml", "The path to the api config file")
 
 	return cmd
 }

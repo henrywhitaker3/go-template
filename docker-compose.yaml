@@ -20,13 +20,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["/api", "--config", "/config/api.yaml"]
+    command: ["/api", "--config", "/config/go-template.yaml"]
     ports:
       - 8765:8765
       - 8766:8766
       - 8767:8767
     volumes:
-      - ./api.yaml:/config/api.yaml:ro
+      - ./go-template.yaml:/config/go-template.yaml:ro
 
 volumes:
   postgres:
