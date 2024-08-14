@@ -52,7 +52,7 @@ func App(t *testing.T) (*app.App, context.CancelFunc) {
 	)
 	require.Nil(t, err)
 
-	conf, err := config.Load(fmt.Sprintf("%s/api.example.yaml", root))
+	conf, err := config.Load(fmt.Sprintf("%s/go-template.example.yaml", root))
 	require.Nil(t, err)
 	conn, err := pgCont.ConnectionString(context.Background())
 	require.Nil(t, err)
