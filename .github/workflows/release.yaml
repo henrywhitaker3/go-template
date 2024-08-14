@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,9 +18,18 @@ jobs:
       - uses: henrywhitaker3/ci-bump@main
         with:
           cmd: ci-bump yaml --patch '.version' --set '.appVersion=${{ github.ref_name }}' chart/Chart.yaml
-      - uses: stefanzweifel/git-auto-commit-action@v5
+
+      - name: Create Pull Request
+        id: pr
+        uses: peter-evans/create-pull-request@v6
         with:
-          commit_message: "chore(chart): update version to ${{ github.ref_name }}"
+          branch: chart/${{ github.ref_name }}
+          commit-message: "chore(chart): update version to ${{ github.ref_name }}"
+      - name: Merge Pull Request
+        uses: "pascalgn/automerge-action@v0.16.3"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          PULL_REQUEST: ${{ steps.pr.outputs.pull-request-number }}
 
       - name: Get chart version
         run: |
