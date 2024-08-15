@@ -41,6 +41,7 @@ func New(app *app.App) *Http {
 	e.Use(middleware.Zap(app.Config.LogLevel.Level()))
 	e.Use(mw.Recover())
 	e.Use(middleware.Logger())
+	e.Use(mw.CORS())
 
 	h := &Http{
 		e:   e,
