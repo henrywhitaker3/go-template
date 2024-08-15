@@ -104,13 +104,18 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (*User, error) 
 
 const makeAdmin = `-- name: MakeAdmin :one
 UPDATE users
-SET admin = true
+SET admin = true, updated_at = $2
 WHERE id = $1
 RETURNING id, name, email, password, admin, created_at, updated_at, deleted_at
 `
 
-func (q *Queries) MakeAdmin(ctx context.Context, id uuid.UUID) (*User, error) {
-	row := q.db.QueryRowContext(ctx, makeAdmin, id)
+type MakeAdminParams struct {
+	ID        uuid.UUID
+	UpdatedAt int64
+}
+
+func (q *Queries) MakeAdmin(ctx context.Context, arg MakeAdminParams) (*User, error) {
+	row := q.db.QueryRowContext(ctx, makeAdmin, arg.ID, arg.UpdatedAt)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -127,13 +132,18 @@ func (q *Queries) MakeAdmin(ctx context.Context, id uuid.UUID) (*User, error) {
 
 const removeAdmin = `-- name: RemoveAdmin :one
 UPDATE users
-SET admin = false
+SET admin = false, updated_at = $2
 WHERE id = $1
 RETURNING id, name, email, password, admin, created_at, updated_at, deleted_at
 `
 
-func (q *Queries) RemoveAdmin(ctx context.Context, id uuid.UUID) (*User, error) {
-	row := q.db.QueryRowContext(ctx, removeAdmin, id)
+type RemoveAdminParams struct {
+	ID        uuid.UUID
+	UpdatedAt int64
+}
+
+func (q *Queries) RemoveAdmin(ctx context.Context, arg RemoveAdminParams) (*User, error) {
+	row := q.db.QueryRowContext(ctx, removeAdmin, arg.ID, arg.UpdatedAt)
 	var i User
 	err := row.Scan(
 		&i.ID,

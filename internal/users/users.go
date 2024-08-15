@@ -104,7 +104,10 @@ func (u *Users) Login(ctx context.Context, email, password string) (*User, error
 }
 
 func (u *Users) MakeAdmin(ctx context.Context, user *User) error {
-	ud, err := u.q.MakeAdmin(ctx, user.ID.UUID())
+	ud, err := u.q.MakeAdmin(ctx, queries.MakeAdminParams{
+		ID:        user.ID.UUID(),
+		UpdatedAt: time.Now().Unix(),
+	})
 	if err != nil {
 		return err
 	}
@@ -113,7 +116,10 @@ func (u *Users) MakeAdmin(ctx context.Context, user *User) error {
 }
 
 func (u *Users) RemoveAdmin(ctx context.Context, user *User) error {
-	ud, err := u.q.RemoveAdmin(ctx, user.ID.UUID())
+	ud, err := u.q.RemoveAdmin(ctx, queries.RemoveAdminParams{
+		ID:        user.ID.UUID(),
+		UpdatedAt: time.Now().Unix(),
+	})
 	if err != nil {
 		return err
 	}

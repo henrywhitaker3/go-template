@@ -22,12 +22,12 @@ WHERE id = $1;
 
 -- name: MakeAdmin :one
 UPDATE users
-SET admin = true
+SET admin = true, updated_at = $2
 WHERE id = $1
 RETURNING *;
 
 -- name: RemoveAdmin :one
 UPDATE users
-SET admin = false
+SET admin = false, updated_at = $2
 WHERE id = $1
 RETURNING *;
