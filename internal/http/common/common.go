@@ -57,5 +57,10 @@ func GetToken(req *http.Request) string {
 		header = strings.Replace(header, "Bearer ", "", 1)
 		return header
 	}
+
+	cookie, err := req.Cookie("auth")
+	if err == nil {
+		return cookie.Value
+	}
 	return ""
 }

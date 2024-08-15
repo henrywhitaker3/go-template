@@ -65,6 +65,7 @@ func App(t *testing.T) (*app.App, context.CancelFunc) {
 				Image:        "ghcr.io/dragonflydb/dragonfly:latest",
 				ExposedPorts: []string{"6379/tcp"},
 				WaitingFor:   wait.ForListeningPort("6379/tcp"),
+				Cmd:          []string{"--proactor_threads=1"},
 			},
 			Started: true,
 			Logger:  testcontainers.TestLogger(t),
