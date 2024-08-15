@@ -19,7 +19,7 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func mapUser(u *queries.User) *User {
+func MapUser(u *queries.User) *User {
 	return &User{
 		ID:        uuid.UUID(u.ID),
 		Email:     u.Email,
@@ -28,6 +28,14 @@ func mapUser(u *queries.User) *User {
 		CreatedAt: time.Unix(u.CreatedAt, 0),
 		UpdatedAt: time.Unix(u.UpdatedAt, 0),
 	}
+}
+
+func MapUsers(users []*queries.User) []*User {
+	out := []*User{}
+	for _, u := range users {
+		out = append(out, MapUser(u))
+	}
+	return out
 }
 
 type Users struct {
@@ -45,7 +53,7 @@ func (u *Users) Get(ctx context.Context, id uuid.UUID) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return mapUser(user), nil
+	return MapUser(user), nil
 }
 
 func (u *Users) GetByEmail(ctx context.Context, email string) (*User, error) {
@@ -53,7 +61,7 @@ func (u *Users) GetByEmail(ctx context.Context, email string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return mapUser(user), err
+	return MapUser(user), err
 }
 
 type CreateParams struct {
@@ -82,7 +90,7 @@ func (u *Users) CreateUser(ctx context.Context, params CreateParams) (*User, err
 	if err != nil {
 		return nil, err
 	}
-	return mapUser(user), nil
+	return MapUser(user), nil
 }
 
 func (u *Users) DeleteUser(ctx context.Context, id uuid.UUID) error {
@@ -100,7 +108,7 @@ func (u *Users) Login(ctx context.Context, email, password string) (*User, error
 	if err := crypto.VerifyPassword(password, user.Password); err != nil {
 		return nil, err
 	}
-	return mapUser(user), nil
+	return MapUser(user), nil
 }
 
 func (u *Users) MakeAdmin(ctx context.Context, user *User) error {
@@ -111,7 +119,7 @@ func (u *Users) MakeAdmin(ctx context.Context, user *User) error {
 	if err != nil {
 		return err
 	}
-	*user = *mapUser(ud)
+	*user = *MapUser(ud)
 	return nil
 }
 
@@ -123,6 +131,6 @@ func (u *Users) RemoveAdmin(ctx context.Context, user *User) error {
 	if err != nil {
 		return err
 	}
-	*user = *mapUser(ud)
+	*user = *MapUser(ud)
 	return nil
 }
