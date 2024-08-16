@@ -3,6 +3,7 @@ package users
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
@@ -37,6 +38,11 @@ func (r RegisterRequest) Validate() error {
 	return nil
 }
 
+type RegisterResponse struct {
+	User  *users.User `json:"user"`
+	Token string      `json:"token"`
+}
+
 type RegisterHandler struct {
 	app *app.App
 }
@@ -61,7 +67,15 @@ func (r *RegisterHandler) Handler() echo.HandlerFunc {
 			return common.Stack(err)
 		}
 
-		return c.JSON(http.StatusCreated, user)
+		token, err := r.app.Jwt.NewForUser(user, time.Hour)
+		if err != nil {
+			return common.Stack(err)
+		}
+
+		return c.JSON(http.StatusCreated, RegisterResponse{
+			User:  user,
+			Token: token,
+		})
 	}
 }
 
