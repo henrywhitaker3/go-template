@@ -21,7 +21,7 @@ func (l LoginRequest) Validate() error {
 		return fmt.Errorf("%w email", common.ErrRequiredField)
 	}
 	if l.Password == "" {
-		return fmt.Errorf("%w email", common.ErrRequiredField)
+		return fmt.Errorf("%w password", common.ErrRequiredField)
 	}
 	return nil
 }
