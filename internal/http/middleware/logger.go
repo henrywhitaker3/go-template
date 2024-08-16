@@ -21,6 +21,7 @@ func Logger() echo.MiddlewareFunc {
 					"remote_ip", c.RealIP(),
 					"host", c.Request().Host,
 					"uri", c.Request().RequestURI,
+					"method", c.Request().Method,
 					"user_agent", c.Request().UserAgent(),
 					"status", c.Response().Status,
 					"latency", dur.Nanoseconds(),
