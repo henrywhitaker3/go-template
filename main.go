@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/henrywhitaker3/go-template/cmd/root"
@@ -55,6 +56,7 @@ func main() {
 
 	logger.Wrap(ctx, conf.LogLevel.Level())
 	logger := logger.Logger(ctx)
+	defer logger.Sync()
 
 	if conf.Telemetry.Tracing.Enabled {
 		logger.Infow("otel tracing enabled", "service_name", conf.Telemetry.Tracing.ServiceName)
@@ -74,6 +76,7 @@ func main() {
 		}); err != nil {
 			die(err)
 		}
+		defer sentry.Flush(time.Second * 2)
 	}
 
 	app, err := app.New(ctx, conf)
