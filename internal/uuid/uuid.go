@@ -25,6 +25,15 @@ func (u *UUID) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (u *UUID) UnmarshalParam(s string) error {
+	id, err := Parse(s)
+	if err != nil {
+		return err
+	}
+	*u = UUID(id)
+	return nil
+}
+
 func New() (UUID, error) {
 	id, err := uuid.NewRandom()
 	return UUID(id), err
