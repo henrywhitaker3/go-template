@@ -21,14 +21,12 @@ func TestItMakesUsersAdmin(t *testing.T) {
 
 	admin, _ := test.User(t, app)
 	require.Nil(t, app.Users.MakeAdmin(ctx, admin))
-	adminToken, err := app.Jwt.NewForUser(admin, time.Second*20)
-	require.Nil(t, err)
+	adminToken := test.Token(t, app, admin)
 
 	user, _ := test.User(t, app)
 
 	badUser, _ := test.User(t, app)
-	badUserToken, err := app.Jwt.NewForUser(badUser, time.Second*20)
-	require.Nil(t, err)
+	badUserToken := test.Token(t, app, badUser)
 
 	type testCase struct {
 		name   string

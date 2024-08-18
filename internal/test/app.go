@@ -110,3 +110,12 @@ func User(t *testing.T, app *app.App) (*users.User, string) {
 	require.Nil(t, err)
 	return user, password
 }
+
+func Token(t *testing.T, app *app.App, user *users.User) string {
+	require.NotNil(t, app)
+	require.NotNil(t, user)
+
+	token, err := app.Jwt.NewForUser(user, time.Minute)
+	require.Nil(t, err)
+	return token
+}
