@@ -24,7 +24,9 @@ import (
 )
 
 var (
-	root string
+	root   string
+	a      *app.App
+	cancel context.CancelFunc
 )
 
 func init() {
@@ -34,8 +36,29 @@ func init() {
 	root = string(rootPath)
 }
 
-func App(t *testing.T) (*app.App, context.CancelFunc) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
+// Added variadic bool so as to not introduce breaking change
+func App(t *testing.T, new ...bool) (*app.App, context.CancelFunc) {
+	recreate := false
+	if len(new) > 0 && new[0] {
+		recreate = true
+	}
+
+	if recreate {
+		return newApp(t)
+	}
+
+	if a == nil {
+		a, cancel = newApp(t)
+	}
+
+	return a, func() {
+		// We're sharing the app here between tests, so we don't want them
+		// being cancelled in any tests that use the shared app
+	}
+}
+
+func newApp(t *testing.T) (*app.App, context.CancelFunc) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
 
 	logger.Wrap(ctx, zap.NewAtomicLevelAt(zapcore.DebugLevel))
 	pgCont, err := postgres.Run(
