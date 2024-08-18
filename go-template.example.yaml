@@ -11,6 +11,17 @@ database:
 redis:
   addr: 127.0.0.1:6379
 
+storage:
+  enabled: true
+  type: s3
+  config:
+    endpoint: 127.0.0.1:9000
+    bucket: bongo
+    region: local
+    insecure: true
+    access_key: bongobongo
+    secret_key: bongobongo
+
 telemetry:
   metrics:
     enabled: true

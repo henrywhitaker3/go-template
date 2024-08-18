@@ -65,9 +65,17 @@ type Http struct {
 	Port int `yaml:"port"`
 }
 
+type Storage struct {
+	Enabled bool           `yaml:"enabled"`
+	Type    string         `yaml:"type"`
+	Config  map[string]any `yaml:"config"`
+}
+
 type Config struct {
 	Name        string `yaml:"name"`
 	Environment string `yaml:"env"`
+
+	Storage Storage `yaml:"storage"`
 
 	EncryptionKey string `yaml:"encryption_key"`
 	JwtSecret     string `yaml:"jwt_secret"`

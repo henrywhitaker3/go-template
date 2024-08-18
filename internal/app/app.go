@@ -13,9 +13,11 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/postgres"
 	"github.com/henrywhitaker3/go-template/internal/probes"
 	"github.com/henrywhitaker3/go-template/internal/redis"
+	"github.com/henrywhitaker3/go-template/internal/storage"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/go-template/internal/workers"
 	"github.com/redis/rueidis"
+	"github.com/thanos-io/objstore"
 )
 
 type server interface {
@@ -44,6 +46,7 @@ type App struct {
 	Database *sql.DB
 	Queries  *queries.Queries
 	Redis    rueidis.Client
+	Storage  objstore.Bucket
 }
 
 func New(ctx context.Context, conf *config.Config) (*App, error) {
@@ -79,6 +82,14 @@ func New(ctx context.Context, conf *config.Config) (*App, error) {
 		Metrics: metrics.New(conf.Telemetry.Metrics.Port),
 
 		Runner: workers.NewRunner(ctx, redis),
+	}
+
+	if conf.Storage.Enabled {
+		storage, err := storage.New(conf.Storage)
+		if err != nil {
+			return nil, err
+		}
+		app.Storage = storage
 	}
 
 	return app, nil

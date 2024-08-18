@@ -14,7 +14,7 @@ tasks:
   up:
     desc: Stand up the docker containers
     cmds:
-      - docker compose up -d redis postgres
+      - docker compose up -d redis postgres minio init-minio
 
   test:unit:
     desc: Run the unit tests

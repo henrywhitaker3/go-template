@@ -103,6 +103,19 @@ func newApp(t *testing.T) (*app.App, context.CancelFunc) {
 
 	conf.Environment = "testing"
 
+	conf.Storage.Enabled = true
+	conf.Storage.Type = "s3"
+	conf.Storage.Config = map[string]any{
+		"region":     "test",
+		"bucket":     Word(),
+		"access_key": Sentence(3),
+		"secret_key": Sentence(3),
+		"insecure":   true,
+	}
+
+	minio(t, &conf.Storage, ctx)
+	t.Log(conf.Storage)
+
 	app, err := app.New(ctx, conf)
 	require.Nil(t, err)
 
@@ -141,4 +154,43 @@ func Token(t *testing.T, app *app.App, user *users.User) string {
 	token, err := app.Jwt.NewForUser(user, time.Minute)
 	require.Nil(t, err)
 	return token
+}
+
+func minio(t *testing.T, conf *config.Storage, ctx context.Context) {
+	minio, err := testcontainers.GenericContainer(
+		ctx,
+		testcontainers.GenericContainerRequest{
+			ContainerRequest: testcontainers.ContainerRequest{
+				Image:        "quay.io/minio/minio:latest",
+				ExposedPorts: []string{"9000/tcp"},
+				WaitingFor:   wait.ForListeningPort("9000/tcp"),
+				Cmd:          []string{"server", "/data"},
+				Env: map[string]string{
+					"MINIO_ROOT_USER":     conf.Config["access_key"].(string),
+					"MINIO_ROOT_PASSWORD": conf.Config["secret_key"].(string),
+					"MINIO_REGION":        "test",
+				},
+			},
+			Started: true,
+			Logger:  testcontainers.TestLogger(t),
+		},
+	)
+	require.Nil(t, err)
+
+	host, err := minio.Host(ctx)
+	require.Nil(t, err)
+	port, err := minio.MappedPort(ctx, nat.Port("9000/tcp"))
+	require.Nil(t, err)
+	conf.Config["endpoint"] = fmt.Sprintf("%s:%d", host, port.Int())
+
+	// Now create the bucket using mc
+	// init, err :=
+	_, _, err = minio.Exec(ctx, []string{
+		"/bin/sh",
+		"-c",
+		fmt.Sprintf(`/usr/bin/mc alias set minio http://127.0.0.1:9000 "%s" "%s";
+/usr/bin/mc mb minio/%s
+		`, conf.Config["access_key"].(string), conf.Config["secret_key"].(string), conf.Config["bucket"].(string)),
+	})
+	require.Nil(t, err)
 }
