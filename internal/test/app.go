@@ -106,8 +106,9 @@ func newApp(t *testing.T) (*app.App, context.CancelFunc) {
 	conf.Storage.Enabled = true
 	conf.Storage.Type = "s3"
 	conf.Storage.Config = map[string]any{
-		"region":     "test",
-		"bucket":     Word(),
+		"region": "test",
+		// Use 2 words no space as minio kicks off when bucket is < 3 chars
+		"bucket":     Word() + Word(),
 		"access_key": Sentence(3),
 		"secret_key": Sentence(3),
 		"insecure":   true,
