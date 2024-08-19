@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"net/http"
 
+	gocache "github.com/henrywhitaker3/go-cache"
 	"github.com/henrywhitaker3/go-template/database/queries"
 	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/crypto"
@@ -47,6 +48,7 @@ type App struct {
 	Queries  *queries.Queries
 	Redis    rueidis.Client
 	Storage  objstore.Bucket
+	Cache    *gocache.Cache
 }
 
 func New(ctx context.Context, conf *config.Config) (*App, error) {
@@ -72,6 +74,7 @@ func New(ctx context.Context, conf *config.Config) (*App, error) {
 		Database: db,
 		Queries:  queries,
 		Redis:    redis,
+		Cache:    gocache.NewCache(gocache.NewRueidisStore(redis)),
 
 		Users: users.New(queries),
 
