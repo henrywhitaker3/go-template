@@ -79,6 +79,10 @@ func (h *Http) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.e.ServeHTTP(w, r)
 }
 
+func (h *Http) Routes() []*echo.Route {
+	return h.e.Routes()
+}
+
 type Handler interface {
 	Handler() echo.HandlerFunc
 	Method() string

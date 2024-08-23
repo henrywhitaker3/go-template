@@ -17,6 +17,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/storage"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/go-template/internal/workers"
+	"github.com/labstack/echo/v4"
 	"github.com/redis/rueidis"
 	"github.com/thanos-io/objstore"
 )
@@ -25,6 +26,7 @@ type server interface {
 	Start(context.Context) error
 	Stop(context.Context) error
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
+	Routes() []*echo.Route
 }
 
 type App struct {
