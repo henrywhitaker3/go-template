@@ -3,7 +3,7 @@ module github.com/henrywhitaker3/go-template
 go 1.22.2
 
 require (
-	github.com/XSAM/otelsql v0.32.0
+	github.com/XSAM/otelsql v0.33.0
 	github.com/brianvoe/gofakeit/v7 v7.0.4
 	github.com/docker/go-connections v0.5.0
 	github.com/getsentry/sentry-go v0.28.1
