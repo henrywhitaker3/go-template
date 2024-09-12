@@ -3,8 +3,10 @@ package test
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -106,9 +108,8 @@ func newApp(t *testing.T) (*app.App, context.CancelFunc) {
 	conf.Storage.Enabled = true
 	conf.Storage.Type = "s3"
 	conf.Storage.Config = map[string]any{
-		"region": "test",
-		// Use 2 words no space as minio kicks off when bucket is < 3 chars
-		"bucket":     Word() + Word(),
+		"region":     "test",
+		"bucket":     strings.ToLower(Letters(10)),
 		"access_key": Sentence(3),
 		"secret_key": Sentence(3),
 		"insecure":   true,
@@ -186,7 +187,7 @@ func minio(t *testing.T, conf *config.Storage, ctx context.Context) {
 
 	// Now create the bucket using mc
 	// init, err :=
-	_, _, err = minio.Exec(ctx, []string{
+	_, output, err := minio.Exec(ctx, []string{
 		"/bin/sh",
 		"-c",
 		fmt.Sprintf(`/usr/bin/mc alias set minio http://127.0.0.1:9000 "%s" "%s";
@@ -194,4 +195,7 @@ func minio(t *testing.T, conf *config.Storage, ctx context.Context) {
 		`, conf.Config["access_key"].(string), conf.Config["secret_key"].(string), conf.Config["bucket"].(string)),
 	})
 	require.Nil(t, err)
+	by, err := io.ReadAll(output)
+	require.Nil(t, err)
+	require.Contains(t, string(by), "Bucket created successfully", "could not create bucket - %s", string(by))
 }

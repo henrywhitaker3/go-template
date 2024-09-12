@@ -17,3 +17,7 @@ func Sentence(words int) string {
 func Email() string {
 	return gofakeit.Email()
 }
+
+func Letters(length int) string {
+	return gofakeit.LetterN(uint(length))
+}
