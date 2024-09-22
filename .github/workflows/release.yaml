@@ -28,7 +28,7 @@ jobs:
           commit-message: "chore(chart): update version to ${{ github.ref_name }}"
           labels: automerge
       - name: Merge Pull Request
-        uses: "pascalgn/automerge-action@v0.16.3"
+        uses: "pascalgn/automerge-action@v0.16.4"
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           PULL_REQUEST: ${{ steps.pr.outputs.pull-request-number }}
