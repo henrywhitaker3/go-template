@@ -121,7 +121,9 @@ func setupPyroscope(conf *config.Config) func() {
 		ServerAddress:   conf.Telemetry.Profiling.Endpoint,
 		Logger:          nil,
 		Tags: map[string]string{
-			"pod": host,
+			"pod":         host,
+			"environment": conf.Environment,
+			"version":     version,
 		},
 		ProfileTypes: conf.Telemetry.Profiling.Profilers.PyroscopeTypes(),
 	})
