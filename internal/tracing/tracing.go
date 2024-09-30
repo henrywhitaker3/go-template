@@ -3,6 +3,7 @@ package tracing
 import (
 	"context"
 
+	otelpyroscope "github.com/grafana/otel-profiling-go"
 	"github.com/henrywhitaker3/go-template/internal/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -17,7 +18,7 @@ import (
 
 var (
 	name           = "not set"
-	TracerProvider *trace.TracerProvider
+	TracerProvider otrace.TracerProvider
 )
 
 func InitTracer(conf *config.Config, version string) (*trace.TracerProvider, error) {
@@ -54,15 +55,21 @@ func InitTracer(conf *config.Config, version string) (*trace.TracerProvider, err
 		return nil, err
 	}
 
+	var ttp otrace.TracerProvider
 	tp := trace.NewTracerProvider(
 		trace.WithSampler(trace.TraceIDRatioBased(conf.Telemetry.Tracing.SampleRate)),
 		trace.WithBatcher(exporter),
 		trace.WithResource(res),
 	)
 	TracerProvider = tp
+	if conf.Telemetry.Profiling.Enabled {
+		ttp = otelpyroscope.NewTracerProvider(tp)
+	} else {
+		ttp = tp
+	}
 
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-	otel.SetTracerProvider(tp)
+	otel.SetTracerProvider(ttp)
 	return tp, nil
 }
 

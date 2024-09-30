@@ -34,3 +34,14 @@ telemetry:
     enabled: false
     endpoint: ""
     sample_rate: 1.0
+
+  profiling:
+    enabled: false
+    endpoint: ""
+    profilers:
+      cpu: true
+      alloc_obj: true
+      alloc_space: true
+      inuse_objects: true
+      inuse_space: true
+      goroutines: true

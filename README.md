@@ -13,6 +13,8 @@ A template repo for golang APIs, comes with:
 - OpenTelemetry Tracing
 - Sentry error tracking
 - User creation/JWT authentication
+- S3/Filesystem storage
+- Pryoscope profiling
 
 ## Get Started
 

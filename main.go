@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
+	"github.com/grafana/pyroscope-go"
 	"github.com/henrywhitaker3/go-template/cmd/root"
 	"github.com/henrywhitaker3/go-template/cmd/secrets"
 	"github.com/henrywhitaker3/go-template/internal/app"
@@ -60,23 +61,15 @@ func main() {
 
 	if conf.Telemetry.Tracing.Enabled {
 		logger.Infow("otel tracing enabled", "service_name", conf.Telemetry.Tracing.ServiceName)
-		tracer, err := tracing.InitTracer(conf, version)
-		if err != nil {
-			die(err)
-		}
-		defer tracer.Shutdown(context.Background())
+		defer setupTracing(conf)()
 	}
 	if conf.Telemetry.Sentry.Enabled {
 		logger.Info("sentry enabled")
-		if err := sentry.Init(sentry.ClientOptions{
-			Dsn:           conf.Telemetry.Sentry.Dsn,
-			Environment:   conf.Environment,
-			Release:       version,
-			EnableTracing: false,
-		}); err != nil {
-			die(err)
-		}
-		defer sentry.Flush(time.Second * 2)
+		defer setupSentry(conf)()
+	}
+	if conf.Telemetry.Profiling.Enabled {
+		logger.Infow("profiling enabled", "service_name", conf.Telemetry.Profiling.ServiceName)
+		defer setupPyroscope(conf)()
 	}
 
 	app, err := app.New(ctx, conf)
@@ -91,6 +84,52 @@ func main() {
 
 	if err := root.Execute(); err != nil {
 		os.Exit(2)
+	}
+}
+
+func setupTracing(conf *config.Config) func() {
+	tracer, err := tracing.InitTracer(conf, version)
+	if err != nil {
+		die(err)
+	}
+	return func() {
+		tracer.Shutdown(context.Background())
+	}
+}
+
+func setupSentry(conf *config.Config) func() {
+	if err := sentry.Init(sentry.ClientOptions{
+		Dsn:           conf.Telemetry.Sentry.Dsn,
+		Environment:   conf.Environment,
+		Release:       version,
+		EnableTracing: false,
+	}); err != nil {
+		die(err)
+	}
+	return func() {
+		sentry.Flush(time.Second * 2)
+	}
+}
+
+func setupPyroscope(conf *config.Config) func() {
+	host, err := os.Hostname()
+	if err != nil {
+		die(err)
+	}
+	prof, err := pyroscope.Start(pyroscope.Config{
+		ApplicationName: conf.Name,
+		ServerAddress:   conf.Telemetry.Profiling.Endpoint,
+		Logger:          nil,
+		Tags: map[string]string{
+			"pod": host,
+		},
+		ProfileTypes: conf.Telemetry.Profiling.Profilers.PyroscopeTypes(),
+	})
+	if err != nil {
+		die(err)
+	}
+	return func() {
+		prof.Stop()
 	}
 }
 

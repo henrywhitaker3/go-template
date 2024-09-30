@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/grafana/pyroscope-go"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -51,10 +52,67 @@ type Sentry struct {
 	Dsn     string `yaml:"dsn"`
 }
 
+type Profilers struct {
+	CPU           bool `yaml:"cpu"`
+	AllocObjects  bool `yaml:"alloc_objects"`
+	AllocSpace    bool `yaml:"alloc_space"`
+	InuseObjects  bool `yaml:"inuse_objects"`
+	InuseSpace    bool `yaml:"inuse_space"`
+	Goroutines    bool `yaml:"goroutines"`
+	BlockCount    bool `yaml:"block_count"`
+	BlockDuration bool `yaml:"block_duration"`
+	MutexCount    bool `yaml:"mutex_count"`
+	MutexDuration bool `yaml:"mutex_duration"`
+}
+
+func (p Profilers) PyroscopeTypes() []pyroscope.ProfileType {
+	out := []pyroscope.ProfileType{}
+	if p.CPU {
+		out = append(out, pyroscope.ProfileCPU)
+	}
+	if p.AllocObjects {
+		out = append(out, pyroscope.ProfileAllocObjects)
+	}
+	if p.AllocSpace {
+		out = append(out, pyroscope.ProfileInuseSpace)
+	}
+	if p.InuseObjects {
+		out = append(out, pyroscope.ProfileInuseObjects)
+	}
+	if p.InuseSpace {
+		out = append(out, pyroscope.ProfileInuseSpace)
+	}
+	if p.Goroutines {
+		out = append(out, pyroscope.ProfileGoroutines)
+	}
+	if p.BlockCount {
+		out = append(out, pyroscope.ProfileBlockCount)
+	}
+	if p.BlockDuration {
+		out = append(out, pyroscope.ProfileBlockDuration)
+	}
+	if p.MutexCount {
+		out = append(out, pyroscope.ProfileMutexCount)
+	}
+	if p.MutexDuration {
+		out = append(out, pyroscope.ProfileMutexDuration)
+	}
+	return out
+}
+
+type Profiling struct {
+	Enabled     bool   `yaml:"enabled"`
+	ServiceName string `yaml:"service_name"`
+	Endpoint    string `yaml:"endpoint"`
+
+	Profilers Profilers `yaml:"profilers"`
+}
+
 type Telemetry struct {
-	Tracing Tracing `yaml:"tracing"`
-	Metrics Metrics `yaml:"metrics"`
-	Sentry  Sentry  `yaml:"sentry"`
+	Tracing   Tracing   `yaml:"tracing"`
+	Metrics   Metrics   `yaml:"metrics"`
+	Sentry    Sentry    `yaml:"sentry"`
+	Profiling Profiling `yaml:"profiling"`
 }
 
 type Probes struct {
@@ -128,6 +186,9 @@ func (c *Config) validate() error {
 	if c.Telemetry.Sentry.Enabled && c.Telemetry.Sentry.Dsn == "" {
 		return errors.New("sentry dsn must be set when enabled")
 	}
+	if c.Telemetry.Profiling.Enabled && c.Telemetry.Profiling.Endpoint == "" {
+		return errors.New("profiling endpoint must be set when enabled")
+	}
 	return nil
 }
 
@@ -149,5 +210,8 @@ func (c *Config) setDefaults() {
 	}
 	if c.Telemetry.Tracing.ServiceName == "" {
 		c.Telemetry.Tracing.ServiceName = c.Name
+	}
+	if c.Telemetry.Profiling.ServiceName == "" {
+		c.Telemetry.Profiling.ServiceName = c.Name
 	}
 }
