@@ -65,7 +65,7 @@ func newApp(t *testing.T) (*app.App, context.CancelFunc) {
 	logger.Wrap(ctx, zap.NewAtomicLevelAt(zapcore.DebugLevel))
 	pgCont, err := postgres.Run(
 		ctx,
-		"postgres:16",
+		"postgres:17",
 		testcontainers.WithLogger(testcontainers.TestLogger(t)),
 		postgres.WithDatabase("orderly"),
 		postgres.WithUsername("orderly"),
