@@ -23,6 +23,7 @@ func TestItStoresFilesInFilesystem(t *testing.T) {
 			"dir": dir,
 		},
 	})
+	require.Nil(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()

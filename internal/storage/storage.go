@@ -32,7 +32,7 @@ func newS3(conf config.Storage) (objstore.Bucket, error) {
 	if err != nil {
 		return nil, err
 	}
-	return s3.NewBucket(log.NewNopLogger(), by, "storage")
+	return s3.NewBucket(log.NewNopLogger(), by, "storage", nil)
 }
 
 func newFilesystem(conf config.Storage) (objstore.Bucket, error) {
