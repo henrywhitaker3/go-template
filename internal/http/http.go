@@ -32,6 +32,9 @@ func New(app *app.App) *Http {
 	if app.Config.Telemetry.Tracing.Enabled {
 		e.Use(middleware.Tracing(app.Config.Telemetry.Tracing))
 	}
+	if app.Config.Telemetry.Metrics.Enabled {
+		e.Use(middleware.Metrics(app.Config.Telemetry, app.Metrics.Registry))
+	}
 	e.Use(middleware.User(app))
 	if app.Config.Telemetry.Sentry.Enabled {
 		e.Use(sentryecho.New(sentryecho.Options{

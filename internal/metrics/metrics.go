@@ -22,6 +22,15 @@ var (
 		Name: "worker_execution_errors_count",
 		Help: "The number of worker execution errors",
 	}, []string{"name"})
+
+	Logins = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "logins_count",
+		Help: "The number of logins",
+	}, []string{"success"})
+	Registrations = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "registrations_count",
+		Help: "The number of registrations",
+	})
 )
 
 type Metrics struct {
@@ -29,7 +38,7 @@ type Metrics struct {
 
 	port int
 
-	registry *prometheus.Registry
+	Registry *prometheus.Registry
 	reg      *sync.Once
 }
 
@@ -41,17 +50,19 @@ func New(port int) *Metrics {
 	m := &Metrics{
 		e:        e,
 		port:     port,
-		registry: prometheus.NewRegistry(),
+		Registry: prometheus.NewRegistry(),
 		reg:      &sync.Once{},
 	}
 
 	m.reg.Do(func() {
-		m.registry.MustRegister(WorkerExecutions)
-		m.registry.MustRegister(WorkerExecutionErrors)
+		m.Registry.MustRegister(WorkerExecutions)
+		m.Registry.MustRegister(WorkerExecutionErrors)
+		m.Registry.MustRegister(Logins)
+		m.Registry.MustRegister(Registrations)
 	})
 
 	m.e.GET("/metrics", echoprometheus.NewHandlerWithConfig(echoprometheus.HandlerConfig{
-		Gatherer: m.registry,
+		Gatherer: m.Registry,
 	}))
 
 	return m

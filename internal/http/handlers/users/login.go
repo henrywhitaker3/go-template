@@ -8,6 +8,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/labstack/echo/v4"
 )
 
@@ -47,6 +48,7 @@ func (l *LoginHandler) Handler() echo.HandlerFunc {
 
 		user, err := l.app.Users.Login(c.Request().Context(), req.Email, req.Password)
 		if err != nil {
+			metrics.Logins.WithLabelValues("false").Inc()
 			return common.ErrUnauth
 		}
 
@@ -54,6 +56,8 @@ func (l *LoginHandler) Handler() echo.HandlerFunc {
 		if err != nil {
 			return common.Stack(err)
 		}
+
+		metrics.Logins.WithLabelValues("true").Inc()
 
 		return c.JSON(http.StatusOK, LoginResponse{
 			Token: token,

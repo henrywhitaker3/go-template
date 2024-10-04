@@ -8,6 +8,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/labstack/echo/v4"
 )
@@ -71,6 +72,8 @@ func (r *RegisterHandler) Handler() echo.HandlerFunc {
 		if err != nil {
 			return common.Stack(err)
 		}
+
+		metrics.Registrations.Inc()
 
 		return c.JSON(http.StatusCreated, RegisterResponse{
 			User:  user,
