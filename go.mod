@@ -19,7 +19,7 @@ require (
 	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.20.4
+	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/rueidis v1.0.47
 	github.com/redis/rueidis/rueidisotel v1.0.47
 	github.com/spf13/cobra v1.8.1
