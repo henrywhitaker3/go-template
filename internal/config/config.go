@@ -131,7 +131,7 @@ type Storage struct {
 
 type Config struct {
 	Name        string `yaml:"name"`
-	Environment string `yaml:"env"`
+	Environment string `yaml:"environment"`
 
 	Storage Storage `yaml:"storage"`
 
