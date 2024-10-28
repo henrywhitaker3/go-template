@@ -38,7 +38,8 @@ type Metrics struct {
 
 	port int
 
-	Registry *prometheus.Registry
+	Registry prometheus.Registerer
+	Gatherer prometheus.Gatherer
 	reg      *sync.Once
 }
 
@@ -50,7 +51,8 @@ func New(port int) *Metrics {
 	m := &Metrics{
 		e:        e,
 		port:     port,
-		Registry: prometheus.NewRegistry(),
+		Registry: prometheus.DefaultRegisterer,
+		Gatherer: prometheus.DefaultGatherer,
 		reg:      &sync.Once{},
 	}
 
@@ -62,7 +64,7 @@ func New(port int) *Metrics {
 	})
 
 	m.e.GET("/metrics", echoprometheus.NewHandlerWithConfig(echoprometheus.HandlerConfig{
-		Gatherer: m.Registry,
+		Gatherer: m.Gatherer,
 	}))
 
 	return m
