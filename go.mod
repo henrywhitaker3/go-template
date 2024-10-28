@@ -26,7 +26,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.34.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.34.0
-	github.com/thanos-io/objstore v0.0.0-20241024120700-168679cbbf20
+	github.com/thanos-io/objstore v0.0.0-20241028150459-cfdd0e50390d
 	go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho v0.56.0
 	go.opentelemetry.io/otel v1.31.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.31.0
