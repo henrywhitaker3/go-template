@@ -34,7 +34,9 @@ jobs:
           PULL_REQUEST: ${{ steps.pr.outputs.pull-request-number }}
           MERGE_RETRIES: 10
           MERGE_RETRY_SLEEP: 30000
-
+      - uses: actions/checkout@v4
+        with:
+          ref: main
       - name: Get chart version
         run: |
           CHART_VERSION=$(cat chart/Chart.yaml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+$")
