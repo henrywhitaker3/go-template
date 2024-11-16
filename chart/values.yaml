@@ -146,3 +146,5 @@ affinity: {}
 
 serviceMonitor:
   enabled: false
+  interval: 15s
+  scrapeTimeout: 10s
