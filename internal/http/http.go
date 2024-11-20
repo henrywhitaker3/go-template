@@ -45,6 +45,7 @@ func New(app *app.App) *Http {
 	e.Use(mw.Recover())
 	e.Use(middleware.Logger())
 	e.Use(mw.CORS())
+	e.Use(middleware.Invalidate(app.Redis))
 
 	h := &Http{
 		e:   e,
