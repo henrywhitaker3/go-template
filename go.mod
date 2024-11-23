@@ -23,7 +23,7 @@ require (
 	github.com/redis/rueidis v1.0.49
 	github.com/redis/rueidis/rueidisotel v1.0.49
 	github.com/spf13/cobra v1.8.1
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.34.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.34.0
 	github.com/thanos-io/objstore v0.0.0-20241111205755-d1dd89d41f97
