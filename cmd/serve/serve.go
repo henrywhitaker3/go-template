@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/henrywhitaker3/go-template/internal/app"
+	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/spf13/cobra"
 )
 
@@ -12,6 +13,8 @@ func New(app *app.App) *cobra.Command {
 		Use:   "serve",
 		Short: "Run the api server",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			app.Metrics.Register(metrics.ApiMetrics)
+
 			go app.Probes.Start(cmd.Context())
 
 			go func() {

@@ -32,6 +32,13 @@ var (
 		Name: "registrations_count",
 		Help: "The number of registrations",
 	})
+
+	ApiMetrics = []prometheus.Collector{
+		WorkerExecutions,
+		WorkerExecutionErrors,
+		Logins,
+		Registrations,
+	}
 )
 
 type Metrics struct {
@@ -60,10 +67,6 @@ func New(port int) *Metrics {
 	}
 
 	m.reg.Do(func() {
-		m.Registry.MustRegister(WorkerExecutions)
-		m.Registry.MustRegister(WorkerExecutionErrors)
-		m.Registry.MustRegister(Logins)
-		m.Registry.MustRegister(Registrations)
 		m.Registry.MustRegister(collectors.NewBuildInfoCollector())
 		m.Registry.MustRegister(collectors.NewGoCollector())
 		m.Registry.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
@@ -89,4 +92,10 @@ func (m *Metrics) Start(ctx context.Context) error {
 func (m *Metrics) Stop(ctx context.Context) error {
 	logger.Logger(ctx).Info("stopping metrics server")
 	return m.e.Shutdown(ctx)
+}
+
+func (m *Metrics) Register(metrics []prometheus.Collector) {
+	for _, metric := range metrics {
+		m.Registry.Register(metric)
+	}
 }
