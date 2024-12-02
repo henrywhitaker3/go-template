@@ -1,11 +1,13 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"os"
 	"time"
 
 	"github.com/grafana/pyroscope-go"
+	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -26,43 +28,43 @@ func (l LogLevel) Level() zap.AtomicLevel {
 }
 
 type Postgres struct {
-	Url string `yaml:"url"`
+	Url string `yaml:"url" env:"URL, overwrite"`
 }
 
 type Redis struct {
-	Addr          string        `yaml:"addr"`
-	Password      string        `yaml:"password"`
-	MaxFlushDelay time.Duration `yaml:"max_flush_delay"`
+	Addr          string        `yaml:"addr" env:"ADDR, overwrite"`
+	Password      string        `yaml:"password" env:"PASSWORD, overwrite"`
+	MaxFlushDelay time.Duration `yaml:"max_flush_delay" env:"MAX_FLUSH_DELAY, overwrite, default=100μs"`
 }
 
 type Tracing struct {
-	ServiceName string  `yaml:"service_name"`
-	Enabled     bool    `yaml:"enabled"`
-	SampleRate  float64 `yaml:"sample_rate"`
-	Endpoint    string  `yaml:"endpoint"`
+	ServiceName string  `yaml:"service_name" env:"SERVICE_NAME"`
+	Enabled     bool    `yaml:"enabled" env:"ENABLED"`
+	SampleRate  float64 `yaml:"sample_rate" env:"SAMPLE_RATE, overwrite, default=1.0"`
+	Endpoint    string  `yaml:"endpoint" env:"ENDPOINT"`
 }
 
 type Metrics struct {
-	Enabled bool `yaml:"enabled"`
-	Port    int  `yaml:"port"`
+	Enabled bool `yaml:"enabled" env:"ENABLED"`
+	Port    int  `yaml:"port" env:"PORT, overwrite, default=8766"`
 }
 
 type Sentry struct {
-	Enabled bool   `yaml:"enabled"`
-	Dsn     string `yaml:"dsn"`
+	Enabled bool   `yaml:"enabled" env:"ENABLED"`
+	Dsn     string `yaml:"dsn" env:"DSN"`
 }
 
 type Profilers struct {
-	CPU           bool `yaml:"cpu"`
-	AllocObjects  bool `yaml:"alloc_objects"`
-	AllocSpace    bool `yaml:"alloc_space"`
-	InuseObjects  bool `yaml:"inuse_objects"`
-	InuseSpace    bool `yaml:"inuse_space"`
-	Goroutines    bool `yaml:"goroutines"`
-	BlockCount    bool `yaml:"block_count"`
-	BlockDuration bool `yaml:"block_duration"`
-	MutexCount    bool `yaml:"mutex_count"`
-	MutexDuration bool `yaml:"mutex_duration"`
+	CPU           bool `yaml:"cpu" env:"CPU, default=true"`
+	AllocObjects  bool `yaml:"alloc_objects" env:"ALLOC_OBJECTS, default=true"`
+	AllocSpace    bool `yaml:"alloc_space" env:"ALLOC_SPACE, default=true"`
+	InuseObjects  bool `yaml:"inuse_objects" env:"INUSE_OBJECTS"`
+	InuseSpace    bool `yaml:"inuse_space" env:"INUSE_SPACE"`
+	Goroutines    bool `yaml:"goroutines" env:"GOROUTINES, default=true"`
+	BlockCount    bool `yaml:"block_count" env:"BLOCK_COUNT"`
+	BlockDuration bool `yaml:"block_duration" env:"BLOCK_DURATION"`
+	MutexCount    bool `yaml:"mutex_count" env:"MUTEX_COUNT"`
+	MutexDuration bool `yaml:"mutex_duration" env:"MUTEX_DURATION"`
 }
 
 func (p Profilers) PyroscopeTypes() []pyroscope.ProfileType {
@@ -101,51 +103,51 @@ func (p Profilers) PyroscopeTypes() []pyroscope.ProfileType {
 }
 
 type Profiling struct {
-	Enabled     bool   `yaml:"enabled"`
-	ServiceName string `yaml:"service_name"`
-	Endpoint    string `yaml:"endpoint"`
+	Enabled     bool   `yaml:"enabled" env:"ENABLED"`
+	ServiceName string `yaml:"service_name" env:"SERVICE_NAME"`
+	Endpoint    string `yaml:"endpoint" env:"ENDPOINT"`
 
-	Profilers Profilers `yaml:"profilers"`
+	Profilers Profilers `yaml:"profilers" env:", prefix=PROFILERS_"`
 }
 
 type Telemetry struct {
-	Tracing   Tracing   `yaml:"tracing"`
-	Metrics   Metrics   `yaml:"metrics"`
-	Sentry    Sentry    `yaml:"sentry"`
-	Profiling Profiling `yaml:"profiling"`
+	Tracing   Tracing   `yaml:"tracing" env:", prefix=TRACING_"`
+	Metrics   Metrics   `yaml:"metrics" env:", prefix=METRICS_"`
+	Sentry    Sentry    `yaml:"sentry" env:", prefix=SENTRY_"`
+	Profiling Profiling `yaml:"profiling" env:", prefix=PROFILING_"`
 }
 
 type Probes struct {
-	Port int `yaml:"port"`
+	Port int `yaml:"port" env:"PORT, overwrite, default=8767"`
 }
 
 type Http struct {
-	Port int `yaml:"port"`
+	Port int `yaml:"port" env:"PORT, overwrite, default=8765"`
 }
 
 type Storage struct {
-	Enabled bool           `yaml:"enabled"`
-	Type    string         `yaml:"type"`
+	Enabled bool           `yaml:"enabled" env:"ENABLED, default=true"`
+	Type    string         `yaml:"type" env:"TYPE"`
 	Config  map[string]any `yaml:"config"`
 }
 
 type Config struct {
-	Name        string `yaml:"name"`
-	Environment string `yaml:"environment"`
+	Name        string `yaml:"name" env:"APP_NAME"`
+	Environment string `yaml:"environment" env:"APP_ENV, overwrite, default=dev"`
 
-	Storage Storage `yaml:"storage"`
+	Storage Storage `yaml:"storage" env:", prefix=STORAGE_"`
 
-	EncryptionKey string `yaml:"encryption_key"`
-	JwtSecret     string `yaml:"jwt_secret"`
+	EncryptionKey string `yaml:"encryption_key" env:"ENCRYPTION_KEY"`
+	JwtSecret     string `yaml:"jwt_secret" env:"JWT_SECRET"`
 
-	LogLevel LogLevel `yaml:"log_level"`
-	Database Postgres `yaml:"database"`
-	Redis    Redis    `yaml:"redis"`
+	LogLevel LogLevel `yaml:"log_level" env:"LOG_LEVEL, overwrite, default=error"`
+	Database Postgres `yaml:"database" env:", prefix=DB_"`
+	Redis    Redis    `yaml:"redis" env:", prefix=REDIS_"`
 
-	Probes Probes `yaml:"probes"`
-	Http   Http   `yaml:"http"`
+	Probes Probes `yaml:"probes" env:", prefix=PROBES_"`
+	Http   Http   `yaml:"http" env:", prefix=HTTP_"`
 
-	Telemetry Telemetry `yaml:"telemetry"`
+	Telemetry Telemetry `yaml:"telemetry" env:", prefix=TELEMETRY_"`
 }
 
 func Load(path string) (*Config, error) {
@@ -161,6 +163,10 @@ func Load(path string) (*Config, error) {
 
 	conf.setDefaults()
 	if err := conf.validate(); err != nil {
+		return nil, err
+	}
+
+	if err := envconfig.Process(context.Background(), &conf); err != nil {
 		return nil, err
 	}
 
@@ -193,21 +199,6 @@ func (c *Config) validate() error {
 }
 
 func (c *Config) setDefaults() {
-	if c.Environment == "" {
-		c.Environment = "dev"
-	}
-	if c.Redis.MaxFlushDelay == 0 {
-		c.Redis.MaxFlushDelay = time.Microsecond * 100
-	}
-	if c.Http.Port == 0 {
-		c.Http.Port = 8765
-	}
-	if c.Telemetry.Metrics.Port == 0 {
-		c.Telemetry.Metrics.Port = 8766
-	}
-	if c.Probes.Port == 0 {
-		c.Probes.Port = 8767
-	}
 	if c.Telemetry.Tracing.ServiceName == "" {
 		c.Telemetry.Tracing.ServiceName = c.Name
 	}
