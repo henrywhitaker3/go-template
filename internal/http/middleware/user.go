@@ -12,12 +12,15 @@ import (
 func User(app *app.App) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			ctx, span := tracing.NewSpan(c.Request().Context(), "GetRequestUser")
+			defer span.End()
+
 			token := common.GetToken(c.Request())
 			if token == "" {
 				return next(c)
 			}
 
-			user, err := app.Jwt.VerifyUser(c.Request().Context(), token)
+			user, err := app.Jwt.VerifyUser(ctx, token)
 			if err == nil {
 				c.SetRequest(c.Request().WithContext(common.SetUser(c.Request().Context(), user)))
 			}
@@ -37,6 +40,7 @@ func User(app *app.App) echo.MiddlewareFunc {
 					tracing.AddString(c.Request().Context(), "request_id", common.RequestID(c))
 				}
 			}
+			span.End()
 
 			// TODO: add handling for cookies
 

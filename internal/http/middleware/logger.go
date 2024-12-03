@@ -6,6 +6,7 @@ import (
 
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/logger"
+	"github.com/henrywhitaker3/go-template/internal/tracing"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
@@ -15,8 +16,10 @@ func Logger() echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			start := time.Now()
 			err := next(c)
+			ctx, span := tracing.NewSpan(c.Request().Context(), "LogRequest")
+			defer span.End()
 			dur := time.Since(start)
-			logger := logger.Logger(c.Request().Context()).
+			logger := logger.Logger(ctx).
 				With(
 					"remote_ip", c.RealIP(),
 					"host", c.Request().Host,
@@ -32,7 +35,7 @@ func Logger() echo.MiddlewareFunc {
 			if id := common.RequestID(c); id != "" {
 				logger = logger.With("request_id", id)
 			}
-			if trace := common.TraceID(c.Request().Context()); trace != "" {
+			if trace := common.TraceID(ctx); trace != "" {
 				logger = logger.With("trace_id", trace)
 			}
 			if err != nil {
