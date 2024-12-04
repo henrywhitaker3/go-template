@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"net/http"
-
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
 	"github.com/labstack/echo/v4"
@@ -20,7 +18,7 @@ func Bind[T request]() echo.MiddlewareFunc {
 
 			var req T
 			if err := c.Bind(&req); err != nil {
-				return echo.NewHTTPError(http.StatusBadRequest)
+				return common.ErrBadRequest
 			}
 			if err := req.Validate(); err != nil {
 				return err
