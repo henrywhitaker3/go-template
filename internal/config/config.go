@@ -161,12 +161,12 @@ func Load(path string) (*Config, error) {
 		return nil, err
 	}
 
-	conf.setDefaults()
-	if err := conf.validate(); err != nil {
+	if err := envconfig.Process(context.Background(), &conf); err != nil {
 		return nil, err
 	}
 
-	if err := envconfig.Process(context.Background(), &conf); err != nil {
+	conf.setDefaults()
+	if err := conf.validate(); err != nil {
 		return nil, err
 	}
 
