@@ -50,7 +50,8 @@ func TestItRunsWorkers(t *testing.T) {
 		executions: 0,
 	}
 
-	runner := workers.NewRunner(ctx, app.Redis)
+	runner, err := workers.NewRunner(ctx, app.Redis)
+	require.Nil(t, err)
 	runner.Register(worker)
 
 	time.Sleep(time.Millisecond * 500)

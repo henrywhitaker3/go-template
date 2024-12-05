@@ -2,12 +2,13 @@ package workers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
-	"github.com/henrywhitaker3/go-template/internal/redis"
 	"github.com/redis/rueidis"
+	"github.com/redis/rueidis/rueidislock"
 )
 
 type Worker interface {
@@ -18,15 +19,25 @@ type Worker interface {
 }
 
 type Runner struct {
-	redis rueidis.Client
-	ctx   context.Context
+	locker rueidislock.Locker
+	ctx    context.Context
 }
 
-func NewRunner(ctx context.Context, redis rueidis.Client) *Runner {
-	return &Runner{
-		redis: redis,
-		ctx:   ctx,
+func NewRunner(ctx context.Context, redis rueidis.Client) (*Runner, error) {
+	locker, err := rueidislock.NewLocker(rueidislock.LockerOption{
+		ClientBuilder: func(option rueidis.ClientOption) (rueidis.Client, error) {
+			return redis, nil
+		},
+		KeyMajority: 2,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialise locker: %w", err)
 	}
+
+	return &Runner{
+		locker: locker,
+		ctx:    ctx,
+	}, nil
 }
 
 func (r *Runner) Register(w Worker) {
@@ -45,9 +56,9 @@ func (r *Runner) Register(w Worker) {
 			case <-tick.C:
 				ctx, cancel := context.WithTimeout(r.ctx, w.Timeout())
 
-				if err := redis.Lock(ctx, r.redis, w.Name(), w.Timeout()); err != nil {
+				_, release, err := r.locker.TryWithContext(ctx, w.Name())
+				if err != nil {
 					logger.Debugw("skipping executing worker", "name", w.Name(), "error", err)
-					// We didn't get the lock, so skip
 					cancel()
 					continue
 				}
@@ -62,7 +73,7 @@ func (r *Runner) Register(w Worker) {
 
 				// Release the lock, use the parent context so we still remove the
 				// lock even if the child context has timed out
-				redis.Unlock(r.ctx, r.redis, w.Name())
+				release()
 				cancel()
 			}
 		}

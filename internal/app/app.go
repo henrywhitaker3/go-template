@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	gocache "github.com/henrywhitaker3/go-cache"
@@ -70,6 +71,11 @@ func New(ctx context.Context, conf *config.Config) (*App, error) {
 		return nil, err
 	}
 
+	runner, err := workers.NewRunner(ctx, redis)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialise runner: %w", err)
+	}
+
 	app := &App{
 		Config: conf,
 
@@ -86,7 +92,7 @@ func New(ctx context.Context, conf *config.Config) (*App, error) {
 		Probes:  probes.New(conf.Probes.Port),
 		Metrics: metrics.New(conf.Telemetry.Metrics.Port),
 
-		Runner: workers.NewRunner(ctx, redis),
+		Runner: runner,
 	}
 
 	if conf.Storage.Enabled {
