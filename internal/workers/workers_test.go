@@ -38,7 +38,7 @@ func (t *testWorker) Executions() int {
 }
 
 func TestItRunsWorkers(t *testing.T) {
-	app, cancel := test.App(t)
+	app, cancel := test.App(t, true)
 	defer cancel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
