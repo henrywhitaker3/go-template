@@ -14,6 +14,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/postgres"
 	"github.com/henrywhitaker3/go-template/internal/probes"
+	"github.com/henrywhitaker3/go-template/internal/queue"
 	"github.com/henrywhitaker3/go-template/internal/redis"
 	"github.com/henrywhitaker3/go-template/internal/storage"
 	"github.com/henrywhitaker3/go-template/internal/users"
@@ -52,6 +53,7 @@ type App struct {
 	Redis    rueidis.Client
 	Storage  objstore.Bucket
 	Cache    *gocache.Cache
+	Queue    *queue.Publisher
 }
 
 func New(ctx context.Context, conf *config.Config) (*App, error) {
@@ -76,6 +78,18 @@ func New(ctx context.Context, conf *config.Config) (*App, error) {
 		return nil, fmt.Errorf("failed to initialise runner: %w", err)
 	}
 
+	pub, err := queue.NewPublisher(queue.PublisherOpts{
+		Redis: queue.RedisOpts{
+			Addr:        conf.Redis.Addr,
+			Password:    conf.Redis.Password,
+			DB:          conf.Queue.DB,
+			OtelEnabled: conf.Telemetry.Tracing.Enabled,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	app := &App{
 		Config: conf,
 
@@ -93,6 +107,7 @@ func New(ctx context.Context, conf *config.Config) (*App, error) {
 		Metrics: metrics.New(conf.Telemetry.Metrics.Port),
 
 		Runner: runner,
+		Queue:  pub,
 	}
 
 	if conf.Storage.Enabled {
@@ -104,4 +119,16 @@ func New(ctx context.Context, conf *config.Config) (*App, error) {
 	}
 
 	return app, nil
+}
+
+func (a *App) Worker(ctx context.Context, queueName queue.Queue) (*queue.Worker, error) {
+	return queue.NewWorker(ctx, queue.ServerOpts{
+		Redis: queue.RedisOpts{
+			Addr:        a.Config.Redis.Addr,
+			Password:    a.Config.Redis.Password,
+			DB:          a.Config.Queue.DB,
+			OtelEnabled: a.Config.Telemetry.Tracing.Enabled,
+		},
+		Queues: []queue.Queue{queueName},
+	})
 }

@@ -131,6 +131,10 @@ type Storage struct {
 	Config  map[string]any `yaml:"config"`
 }
 
+type Queue struct {
+	DB int `yaml:"db" env:"DB, overwrite, default=5"`
+}
+
 type Config struct {
 	Name        string `yaml:"name" env:"APP_NAME"`
 	Environment string `yaml:"environment" env:"APP_ENV, overwrite, default=dev"`
@@ -148,6 +152,8 @@ type Config struct {
 	Http   Http   `yaml:"http" env:", prefix=HTTP_"`
 
 	Telemetry Telemetry `yaml:"telemetry" env:", prefix=TELEMETRY_"`
+
+	Queue Queue `yaml:"queue" env:", prefix=QUEUE_"`
 }
 
 func Load(path string) (*Config, error) {
