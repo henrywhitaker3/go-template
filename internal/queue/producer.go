@@ -40,11 +40,7 @@ func (p *Publisher) Push(ctx context.Context, kind Task, payload any) error {
 	}
 	task := asynq.NewTask(string(kind), by)
 
-	var queue Queue
-	switch kind {
-	default:
-		queue = DefaultQueue
-	}
+	queue := mapTaskToQueue(kind)
 
 	span.SetAttributes(attribute.String("queue", string(queue)))
 	labels := prometheus.Labels{"queue": string(queue), "task": string(kind)}

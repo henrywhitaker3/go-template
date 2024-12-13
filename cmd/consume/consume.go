@@ -39,6 +39,8 @@ func New(app *app.App) *cobra.Command {
 			app.Probes.Ready()
 			app.Probes.Healthy()
 
+			consumer.RegisterMetrics(app.Metrics.Registry)
+
 			return consumer.Consume()
 		},
 	}
