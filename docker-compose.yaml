@@ -15,7 +15,7 @@ services:
     image: ghcr.io/dragonflydb/dragonfly:latest
     ports:
       - 6379:6379
-    command: ["--proactor_threads=1"]
+    command: ["--proactor_threads=1", "--default_lua_flags=allow-undeclared-keys"]
 
   minio:
     image: quay.io/minio/minio:latest

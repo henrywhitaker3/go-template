@@ -16,6 +16,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/http"
 	"github.com/henrywhitaker3/go-template/internal/logger"
 	pg "github.com/henrywhitaker3/go-template/internal/postgres"
+	"github.com/henrywhitaker3/go-template/internal/queue"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -90,7 +91,7 @@ func newApp(t *testing.T) (*app.App, context.CancelFunc) {
 				Image:        "ghcr.io/dragonflydb/dragonfly:latest",
 				ExposedPorts: []string{"6379/tcp"},
 				WaitingFor:   wait.ForListeningPort("6379/tcp"),
-				Cmd:          []string{"--proactor_threads=1"},
+				Cmd:          []string{"--proactor_threads=1", "--default_lua_flags=allow-undeclared-keys"},
 			},
 			Started: true,
 			Logger:  testcontainers.TestLogger(t),
@@ -198,4 +199,11 @@ func minio(t *testing.T, conf *config.Storage, ctx context.Context) {
 	by, err := io.ReadAll(output)
 	require.Nil(t, err)
 	require.Contains(t, string(by), "Bucket created successfully", "could not create bucket - %s", string(by))
+}
+
+func RunQueues(t *testing.T, app *app.App, ctx context.Context) {
+	worker, err := app.Worker(ctx, []queue.Queue{queue.DefaultQueue})
+	require.Nil(t, err)
+	go worker.Consume()
+	time.Sleep(time.Millisecond * 500)
 }
