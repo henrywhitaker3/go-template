@@ -22,12 +22,7 @@ type Queue string
 type Task string
 
 const (
-	TestsQueue   Queue = "tests"
 	DefaultQueue Queue = "default"
-	ResultsQueue Queue = "results"
-
-	TestTask   Task = "test"
-	ResultTask Task = "result"
 )
 
 type Worker struct {

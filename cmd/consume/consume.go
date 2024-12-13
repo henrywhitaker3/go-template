@@ -18,7 +18,7 @@ func New(app *app.App) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			app.Metrics.Register(metrics.QueueConsumerMetrics)
 
-			consumer, err := app.Worker(cmd.Context(), queue.Queue(args[0]))
+			consumer, err := app.Worker(cmd.Context(), []queue.Queue{queue.Queue(args[0])})
 			if err != nil {
 				return fmt.Errorf("failed to instantiate queue consumer: %w", err)
 			}

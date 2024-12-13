@@ -121,7 +121,7 @@ func New(ctx context.Context, conf *config.Config) (*App, error) {
 	return app, nil
 }
 
-func (a *App) Worker(ctx context.Context, queueName queue.Queue) (*queue.Worker, error) {
+func (a *App) Worker(ctx context.Context, queues []queue.Queue) (*queue.Worker, error) {
 	return queue.NewWorker(ctx, queue.ServerOpts{
 		Redis: queue.RedisOpts{
 			Addr:        a.Config.Redis.Addr,
@@ -129,6 +129,6 @@ func (a *App) Worker(ctx context.Context, queueName queue.Queue) (*queue.Worker,
 			DB:          a.Config.Queue.DB,
 			OtelEnabled: a.Config.Telemetry.Tracing.Enabled,
 		},
-		Queues: []queue.Queue{queueName},
+		Queues: queues,
 	})
 }
