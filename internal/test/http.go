@@ -44,6 +44,25 @@ func Post(t *testing.T, app *app.App, url string, body any, apikey string) *http
 	return rec
 }
 
+func Put(t *testing.T, app *app.App, url string, body any, apikey string) *httptest.ResponseRecorder {
+	var reader io.Reader
+	if body != nil {
+		by, err := json.Marshal(body)
+		require.Nil(t, err)
+		reader = bytes.NewReader(by)
+	}
+
+	req := httptest.NewRequest(http.MethodPut, url, reader)
+	if apikey != "" {
+		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %s", apikey))
+	}
+	req.Header.Set("Content-type", echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	app.Http.ServeHTTP(rec, req)
+
+	return rec
+}
+
 func Patch(t *testing.T, app *app.App, url string, body any, apikey string) *httptest.ResponseRecorder {
 	var reader io.Reader
 	if body != nil {
