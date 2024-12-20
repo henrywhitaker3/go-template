@@ -106,6 +106,12 @@ func (h *Http) Register(handler Handler) {
 		reg = h.e.PATCH
 	case http.MethodDelete:
 		reg = h.e.DELETE
+	case http.MethodPut:
+		reg = h.e.PUT
+	case http.MethodHead:
+		reg = h.e.HEAD
+	case http.MethodOptions:
+		reg = h.e.OPTIONS
 	default:
 		panic("invalid http method registered")
 	}
