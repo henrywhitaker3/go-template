@@ -14,18 +14,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Get(app *app.App, url string, apikey string) *httptest.ResponseRecorder {
+func Get(app *app.App, url string, apikey string, headers ...map[string]string) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	if apikey != "" {
 		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %s", apikey))
 	}
 	rec := httptest.NewRecorder()
+
+	if len(headers) > 0 {
+		for _, c := range headers {
+			for key, val := range c {
+				req.Header.Set(key, val)
+			}
+		}
+	}
+
 	app.Http.ServeHTTP(rec, req)
 
 	return rec
 }
 
-func Post(t *testing.T, app *app.App, url string, body any, apikey string) *httptest.ResponseRecorder {
+func Post(t *testing.T, app *app.App, url string, body any, apikey string, headers ...map[string]string) *httptest.ResponseRecorder {
 	var reader io.Reader
 	if body != nil {
 		by, err := json.Marshal(body)
@@ -38,13 +47,22 @@ func Post(t *testing.T, app *app.App, url string, body any, apikey string) *http
 		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %s", apikey))
 	}
 	req.Header.Set("Content-type", echo.MIMEApplicationJSON)
+
+	if len(headers) > 0 {
+		for _, c := range headers {
+			for key, val := range c {
+				req.Header.Set(key, val)
+			}
+		}
+	}
+
 	rec := httptest.NewRecorder()
 	app.Http.ServeHTTP(rec, req)
 
 	return rec
 }
 
-func Put(t *testing.T, app *app.App, url string, body any, apikey string) *httptest.ResponseRecorder {
+func Put(t *testing.T, app *app.App, url string, body any, apikey string, headers ...map[string]string) *httptest.ResponseRecorder {
 	var reader io.Reader
 	if body != nil {
 		by, err := json.Marshal(body)
@@ -57,13 +75,22 @@ func Put(t *testing.T, app *app.App, url string, body any, apikey string) *httpt
 		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %s", apikey))
 	}
 	req.Header.Set("Content-type", echo.MIMEApplicationJSON)
+
+	if len(headers) > 0 {
+		for _, c := range headers {
+			for key, val := range c {
+				req.Header.Set(key, val)
+			}
+		}
+	}
+
 	rec := httptest.NewRecorder()
 	app.Http.ServeHTTP(rec, req)
 
 	return rec
 }
 
-func Patch(t *testing.T, app *app.App, url string, body any, apikey string) *httptest.ResponseRecorder {
+func Patch(t *testing.T, app *app.App, url string, body any, apikey string, headers ...map[string]string) *httptest.ResponseRecorder {
 	var reader io.Reader
 	if body != nil {
 		by, err := json.Marshal(body)
@@ -76,13 +103,22 @@ func Patch(t *testing.T, app *app.App, url string, body any, apikey string) *htt
 		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %s", apikey))
 	}
 	req.Header.Set("Content-type", echo.MIMEApplicationJSON)
+
+	if len(headers) > 0 {
+		for _, c := range headers {
+			for key, val := range c {
+				req.Header.Set(key, val)
+			}
+		}
+	}
+
 	rec := httptest.NewRecorder()
 	app.Http.ServeHTTP(rec, req)
 
 	return rec
 }
 
-func Delete(t *testing.T, app *app.App, url string, body any, apikey string) *httptest.ResponseRecorder {
+func Delete(t *testing.T, app *app.App, url string, body any, apikey string, headers ...map[string]string) *httptest.ResponseRecorder {
 	var reader io.Reader
 	if body != nil {
 		by, err := json.Marshal(body)
@@ -95,6 +131,15 @@ func Delete(t *testing.T, app *app.App, url string, body any, apikey string) *ht
 		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %s", apikey))
 	}
 	req.Header.Set("Content-type", echo.MIMEApplicationJSON)
+
+	if len(headers) > 0 {
+		for _, c := range headers {
+			for key, val := range c {
+				req.Header.Set(key, val)
+			}
+		}
+	}
+
 	rec := httptest.NewRecorder()
 	app.Http.ServeHTTP(rec, req)
 
