@@ -29,14 +29,14 @@ func User(app *app.App) echo.MiddlewareFunc {
 				if app.Config.Telemetry.Sentry.Enabled {
 					if hub := sentryecho.GetHubFromContext(c); hub != nil {
 						hub.Scope().SetUser(sentry.User{
-							ID:    user.ID.UUID().String(),
+							ID:    user.ID.String(),
 							Email: user.Email,
 							Name:  user.Name,
 						})
 					}
 				}
 				if app.Config.Telemetry.Tracing.Enabled {
-					tracing.AddString(c.Request().Context(), "user_id", user.ID.UUID().String())
+					tracing.AddString(c.Request().Context(), "user_id", user.ID.String())
 					tracing.AddString(c.Request().Context(), "request_id", common.RequestID(c))
 				}
 			}
