@@ -333,8 +333,8 @@ github.com/testcontainers/testcontainers-go/modules/postgres v0.34.0 h1:c51aBXT3
 github.com/testcontainers/testcontainers-go/modules/postgres v0.34.0/go.mod h1:EWP75ogLQU4M4L8U+20mFipjV4WIR9WtlMXSB6/wiuc=
 github.com/testcontainers/testcontainers-go/modules/redis v0.32.0 h1:HW5Qo9qfLi5iwfS7cbXwG6qe8ybXGePcgGPEmVlVDlo=
 github.com/testcontainers/testcontainers-go/modules/redis v0.32.0/go.mod h1:5kltdxVKZG0aP1iegeqKz4K8HHyP0wbkW5o84qLyMjY=
-github.com/thanos-io/objstore v0.0.0-20241217111833-063ea3806b2f h1:9ODgWM6r0tS9RTRJji+CShr4of09tKscnaXNrRVxPog=
-github.com/thanos-io/objstore v0.0.0-20241217111833-063ea3806b2f/go.mod h1:vnhbhM+Mt4L9HzFrwxWBSNgckO2NkJVwa8WA+z9o3ek=
+github.com/thanos-io/objstore v0.0.0-20241226233006-a14268e0e939 h1:SQ2kXr9yJ/ymz4ItPfJw6t/m4zdVhTyUZCcIART5XmU=
+github.com/thanos-io/objstore v0.0.0-20241226233006-a14268e0e939/go.mod h1:vnhbhM+Mt4L9HzFrwxWBSNgckO2NkJVwa8WA+z9o3ek=
 github.com/tklauser/go-sysconf v0.3.12 h1:0QaGUFOdQaIVdPgfITYzaTegZvdCjmYO52cSFAEVmqU=
 github.com/tklauser/go-sysconf v0.3.12/go.mod h1:Ho14jnntGE1fpdOqQEEaiKRpvIavV0hSfmBq8nJbHYI=
 github.com/tklauser/numcpus v0.6.1 h1:ng9scYS7az0Bk4OZLvrNXNSAO2Pxr1XXRAPyjhIx+Fk=
