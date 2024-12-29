@@ -21,3 +21,7 @@ func Email() string {
 func Letters(length int) string {
 	return gofakeit.LetterN(uint(length))
 }
+
+func Name() string {
+	return gofakeit.Name()
+}
