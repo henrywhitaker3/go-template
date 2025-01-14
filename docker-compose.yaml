@@ -71,6 +71,10 @@ services:
       - DB_URL=postgres://api:password@postgres:5432/api?sslmode=disable
     networks:
       - go-template
+    depends_on:
+      - postgres
+      - minio
+      - redis
     deploy:
       resources:
         limits:

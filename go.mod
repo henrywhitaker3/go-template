@@ -26,7 +26,7 @@ require (
 	github.com/redis/go-redis/extra/redisotel/v9 v9.7.0
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/redis/rueidis v1.0.53
-	github.com/redis/rueidis/rueidisotel v1.0.52
+	github.com/redis/rueidis/rueidisotel v1.0.53
 	github.com/sethvargo/go-envconfig v1.1.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
