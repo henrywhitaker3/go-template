@@ -25,9 +25,12 @@ func New(app *app.App) *cobra.Command {
 				app.Metrics.Stop(ctx)
 				app.Probes.Stop(ctx)
 				app.Http.Stop(ctx)
+				app.Runner.Stop()
 			}()
 
 			go app.Metrics.Start(cmd.Context())
+
+			app.Runner.Run()
 
 			app.Probes.Ready()
 			app.Probes.Healthy()

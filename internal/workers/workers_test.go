@@ -20,8 +20,8 @@ func (t *testWorker) Name() string {
 	return "tester"
 }
 
-func (t *testWorker) Interval() time.Duration {
-	return t.interval
+func (t *testWorker) Interval() workers.Interval {
+	return workers.NewInterval(t.interval)
 }
 
 func (t *testWorker) Timeout() time.Duration {
@@ -52,7 +52,9 @@ func TestItRunsWorkers(t *testing.T) {
 
 	runner, err := workers.NewRunner(ctx, app.Redis)
 	require.Nil(t, err)
-	runner.Register(worker)
+	require.Nil(t, runner.Register(worker))
+	runner.Run()
+	defer runner.Stop()
 
 	time.Sleep(time.Millisecond * 500)
 
