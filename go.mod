@@ -8,7 +8,7 @@ require (
 	github.com/docker/go-connections v0.5.0
 	github.com/getsentry/sentry-go v0.31.1
 	github.com/getsentry/sentry-go/echo v0.31.1
-	github.com/go-co-op/gocron/v2 v2.14.2
+	github.com/go-co-op/gocron/v2 v2.15.0
 	github.com/go-kit/log v0.2.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-migrate/migrate/v4 v4.18.1
