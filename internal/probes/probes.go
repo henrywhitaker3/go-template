@@ -11,6 +11,14 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+var (
+	server    Probes
+	Healthy   = server.Healthy
+	Unhealthy = server.Unhealthy
+	Ready     = server.Ready
+	Unready   = server.Unready
+)
+
 type Probes struct {
 	mu *sync.RWMutex
 
@@ -21,6 +29,9 @@ type Probes struct {
 	healthy bool
 }
 
+// Creates a new probes server and assignes the default `server` var
+// to it. This way other packages can change the health status without being passed
+// a probes server
 func New(port int) *Probes {
 	p := &Probes{
 		port: port,
@@ -35,6 +46,7 @@ func New(port int) *Probes {
 	e.GET("/healthz", p.healthyHandler())
 
 	p.e = e
+	server = *p
 
 	return p
 }

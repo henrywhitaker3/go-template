@@ -6,6 +6,7 @@ import (
 
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
+	"github.com/henrywhitaker3/go-template/internal/probes"
 	"github.com/henrywhitaker3/go-template/internal/queue"
 	"github.com/spf13/cobra"
 )
@@ -28,7 +29,7 @@ func New(app *app.App) *cobra.Command {
 			go func() {
 				<-cmd.Context().Done()
 				ctx := context.Background()
-				app.Probes.Unready()
+				probes.Unready()
 
 				app.Metrics.Stop(ctx)
 				app.Probes.Stop(ctx)
@@ -36,8 +37,8 @@ func New(app *app.App) *cobra.Command {
 
 			go app.Metrics.Start(cmd.Context())
 
-			app.Probes.Ready()
-			app.Probes.Healthy()
+			probes.Ready()
+			probes.Healthy()
 
 			consumer.RegisterMetrics(app.Metrics.Registry)
 

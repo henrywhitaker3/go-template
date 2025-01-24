@@ -57,7 +57,7 @@ type App struct {
 }
 
 func New(ctx context.Context, conf *config.Config) (*App, error) {
-	redis, err := redis.New(conf)
+	redis, err := redis.New(ctx, conf)
 	if err != nil {
 		return nil, err
 	}
