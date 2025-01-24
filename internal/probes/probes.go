@@ -33,7 +33,7 @@ type Probes struct {
 // to it. This way other packages can change the health status without being passed
 // a probes server
 func New(port int) *Probes {
-	p := &Probes{
+	p := Probes{
 		port: port,
 		mu:   &sync.RWMutex{},
 	}
@@ -46,9 +46,9 @@ func New(port int) *Probes {
 	e.GET("/healthz", p.healthyHandler())
 
 	p.e = e
-	server = *p
+	server = p
 
-	return p
+	return &p
 }
 
 func (p *Probes) Healthy() {
