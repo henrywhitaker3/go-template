@@ -12,12 +12,24 @@ import (
 )
 
 var (
-	server    Probes
-	Healthy   = server.Healthy
-	Unhealthy = server.Unhealthy
-	Ready     = server.Ready
-	Unready   = server.Unready
+	server *Probes
 )
+
+func Healthy() {
+	server.Healthy()
+}
+
+func Unhealthy() {
+	server.Unhealthy()
+}
+
+func Ready() {
+	server.Ready()
+}
+
+func Unready() {
+	server.Unready()
+}
 
 type Probes struct {
 	mu *sync.RWMutex
@@ -33,7 +45,7 @@ type Probes struct {
 // to it. This way other packages can change the health status without being passed
 // a probes server
 func New(port int) *Probes {
-	p := Probes{
+	p := &Probes{
 		port: port,
 		mu:   &sync.RWMutex{},
 	}
@@ -48,7 +60,7 @@ func New(port int) *Probes {
 	p.e = e
 	server = p
 
-	return &p
+	return p
 }
 
 func (p *Probes) Healthy() {
