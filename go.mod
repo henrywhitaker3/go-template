@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	github.com/XSAM/otelsql v0.36.0
-	github.com/brianvoe/gofakeit/v7 v7.1.2
+	github.com/brianvoe/gofakeit/v7 v7.2.1
 	github.com/docker/go-connections v0.5.0
 	github.com/getsentry/sentry-go v0.31.1
 	github.com/getsentry/sentry-go/echo v0.31.1
