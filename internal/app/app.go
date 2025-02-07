@@ -57,6 +57,7 @@ type App struct {
 }
 
 func New(ctx context.Context, conf *config.Config) (*App, error) {
+	probes := probes.New(conf.Probes.Port)
 	redis, err := redis.New(ctx, conf)
 	if err != nil {
 		return nil, err
@@ -103,7 +104,7 @@ func New(ctx context.Context, conf *config.Config) (*App, error) {
 		Encryption: enc,
 		Jwt:        jwt.New(conf.JwtSecret, redis),
 
-		Probes:  probes.New(conf.Probes.Port),
+		Probes:  probes,
 		Metrics: metrics.New(conf.Telemetry.Metrics.Port),
 
 		Runner: runner,
