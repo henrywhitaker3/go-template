@@ -63,7 +63,7 @@ func New(ctx context.Context, conf *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	db, err := postgres.Open(ctx, conf.Database, conf.Telemetry.Tracing)
+	db, err := postgres.Open(ctx, conf.Database.Uri(), conf.Telemetry.Tracing)
 	if err != nil {
 		return nil, err
 	}

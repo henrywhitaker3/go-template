@@ -3,7 +3,9 @@ package config
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/grafana/pyroscope-go"
@@ -29,7 +31,33 @@ func (l LogLevel) Level() zap.AtomicLevel {
 
 type Postgres struct {
 	Url        string `yaml:"url"          env:"URL, overwrite"`
+	Host       string `yaml:"host"         env:"HOST, overwrite"`
+	Port       int    `yaml:"port"         env:"PORT, overwrite"`
+	Database   string `yaml:"database"     env:"DATABASE, overwrite"`
+	User       string `yaml:"user"         env:"USER, overwrite"`
+	Password   string `yaml:"password"     env:"PASSWORD, overwrite"`
+	SslMode    string `yaml:"ssl_mode"     env:"SSL_MODE, overwrite"`
 	CaCertFile string `yaml:"ca_cert_file" env:"CA_CERT_FILE, overwrite"`
+}
+
+func (p Postgres) Uri() string {
+	url := ""
+	if p.Url != "" {
+		url = strings.Split(p.Url, "?")[0]
+	} else {
+		url = fmt.Sprintf("postgresql://%s:%s@%s:%d/%s", p.User, p.Password, p.Host, p.Port, p.Database)
+	}
+	args := []string{}
+	if p.SslMode != "" {
+		args = append(args, fmt.Sprintf("sslmode=%s", p.SslMode))
+	}
+	if p.CaCertFile != "" {
+		args = append(args, fmt.Sprintf("sslrootcert=%s", p.CaCertFile))
+	}
+	if len(args) > 0 {
+		url = fmt.Sprintf("%s?%s", url, strings.Join(args, "&"))
+	}
+	return url
 }
 
 type Redis struct {
