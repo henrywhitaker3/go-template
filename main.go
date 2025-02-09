@@ -59,15 +59,15 @@ func main() {
 	logger := logger.Logger(ctx)
 	defer logger.Sync()
 
-	if conf.Telemetry.Tracing.Enabled {
+	if *conf.Telemetry.Tracing.Enabled {
 		logger.Infow("otel tracing enabled", "service_name", conf.Telemetry.Tracing.ServiceName)
 		defer setupTracing(conf)()
 	}
-	if conf.Telemetry.Sentry.Enabled {
+	if *conf.Telemetry.Sentry.Enabled {
 		logger.Info("sentry enabled")
 		defer setupSentry(conf)()
 	}
-	if conf.Telemetry.Profiling.Enabled {
+	if *conf.Telemetry.Profiling.Enabled {
 		logger.Infow("profiling enabled", "service_name", conf.Telemetry.Profiling.ServiceName)
 		defer setupPyroscope(conf)()
 	}

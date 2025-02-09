@@ -91,7 +91,10 @@ func newApp(t *testing.T) (*app.App, context.CancelFunc) {
 				Image:        "ghcr.io/dragonflydb/dragonfly:latest",
 				ExposedPorts: []string{"6379/tcp"},
 				WaitingFor:   wait.ForListeningPort("6379/tcp"),
-				Cmd:          []string{"--proactor_threads=1", "--default_lua_flags=allow-undeclared-keys"},
+				Cmd: []string{
+					"--proactor_threads=1",
+					"--default_lua_flags=allow-undeclared-keys",
+				},
 			},
 			Started: true,
 			Logger:  testcontainers.TestLogger(t),
@@ -106,7 +109,7 @@ func newApp(t *testing.T) (*app.App, context.CancelFunc) {
 
 	conf.Environment = "testing"
 
-	conf.Storage.Enabled = true
+	conf.Storage.Enabled = ptr(true)
 	conf.Storage.Type = "s3"
 	conf.Storage.Config = map[string]any{
 		"region":     "test",
@@ -198,7 +201,13 @@ func minio(t *testing.T, conf *config.Storage, ctx context.Context) {
 	require.Nil(t, err)
 	by, err := io.ReadAll(output)
 	require.Nil(t, err)
-	require.Contains(t, string(by), "Bucket created successfully", "could not create bucket - %s", string(by))
+	require.Contains(
+		t,
+		string(by),
+		"Bucket created successfully",
+		"could not create bucket - %s",
+		string(by),
+	)
 }
 
 func RunQueues(t *testing.T, app *app.App, ctx context.Context) {
@@ -206,4 +215,14 @@ func RunQueues(t *testing.T, app *app.App, ctx context.Context) {
 	require.Nil(t, err)
 	go worker.Consume()
 	time.Sleep(time.Millisecond * 500)
+}
+
+func Must[T any](t *testing.T, f func() (T, error)) T {
+	out, err := f()
+	require.Nil(t, err)
+	return out
+}
+
+func ptr[T any](in T) *T {
+	return &in
 }

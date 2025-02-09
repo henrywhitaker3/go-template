@@ -2,6 +2,8 @@ package jwt
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"time"
@@ -15,6 +17,16 @@ import (
 var (
 	ErrInvalidated = errors.New("jwt has been invalidated")
 )
+
+func GenerateSecret(size int) (string, error) {
+	secret := make([]byte, size/8)
+	_, err := rand.Read(secret)
+	if err != nil {
+		return "", err
+	}
+	encoded := base64.RawStdEncoding.EncodeToString(secret)
+	return fmt.Sprintf("base64:%s\n", encoded), nil
+}
 
 type Jwt struct {
 	secret string
@@ -95,7 +107,12 @@ func (j *Jwt) InvalidateUser(ctx context.Context, token string) error {
 	expires := time.Unix(claims.ExpiresAt, 0)
 	remaining := time.Until(expires)
 
-	cmd := j.redis.B().Set().Key(j.invalidatedKey(crypto.Sum(token))).Value("true").Ex(remaining).Build()
+	cmd := j.redis.B().
+		Set().
+		Key(j.invalidatedKey(crypto.Sum(token))).
+		Value("true").
+		Ex(remaining).
+		Build()
 	res := j.redis.Do(ctx, cmd)
 	return res.Error()
 }

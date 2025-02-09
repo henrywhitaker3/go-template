@@ -1,10 +1,9 @@
 package secrets
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 
+	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/spf13/cobra"
 )
 
@@ -17,14 +16,11 @@ func newJwt() *cobra.Command {
 		Use:   "jwt",
 		Short: "Generate a new JWT secret",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			secret := make([]byte, jwtSize/8)
-			_, err := rand.Read(secret)
+			key, err := jwt.GenerateSecret(jwtSize)
 			if err != nil {
 				return err
 			}
-
-			encoded := base64.RawStdEncoding.EncodeToString(secret)
-			fmt.Printf("base64:%s\n", encoded)
+			fmt.Println(key)
 			return nil
 		},
 	}

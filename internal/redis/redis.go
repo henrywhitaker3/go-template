@@ -26,7 +26,7 @@ func New(ctx context.Context, conf *config.Config) (rueidis.Client, error) {
 
 	var client rueidis.Client
 	var err error
-	if conf.Telemetry.Tracing.Enabled {
+	if *conf.Telemetry.Tracing.Enabled {
 		client, err = rueidisotel.NewClient(
 			opts,
 			rueidisotel.WithDBStatement(func(cmdTokens []string) string {

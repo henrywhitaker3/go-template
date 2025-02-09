@@ -12,7 +12,7 @@ import (
 func Open(ctx context.Context, url string, tracing config.Tracing) (*sql.DB, error) {
 	var db *sql.DB
 	var err error
-	if tracing.Enabled {
+	if *tracing.Enabled {
 		db, err = otelsql.Open(
 			"pgx",
 			url,

@@ -58,60 +58,66 @@ type App struct {
 
 func New(ctx context.Context, conf *config.Config) (*App, error) {
 	probes := probes.New(conf.Probes.Port)
-	redis, err := redis.New(ctx, conf)
-	if err != nil {
-		return nil, err
-	}
-
-	db, err := postgres.Open(ctx, conf.Database.Uri(), conf.Telemetry.Tracing)
-	if err != nil {
-		return nil, err
-	}
-	queries := queries.New(db)
-
-	enc, err := crypto.NewEncryptor(conf.EncryptionKey)
-	if err != nil {
-		return nil, err
-	}
-
-	runner, err := workers.NewRunner(ctx, redis)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialise runner: %w", err)
-	}
-
-	pub, err := queue.NewPublisher(queue.PublisherOpts{
-		Redis: queue.RedisOpts{
-			Addr:        conf.Redis.Addr,
-			Password:    conf.Redis.Password,
-			DB:          conf.Queue.DB,
-			OtelEnabled: conf.Telemetry.Tracing.Enabled,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
 
 	app := &App{
-		Config: conf,
-
-		Database: db,
-		Queries:  queries,
-		Redis:    redis,
-		Cache:    gocache.NewCache(gocache.NewRueidisStore(redis)),
-
-		Users: users.New(queries),
-
-		Encryption: enc,
-		Jwt:        jwt.New(conf.JwtSecret, redis),
-
+		Config:  conf,
 		Probes:  probes,
 		Metrics: metrics.New(conf.Telemetry.Metrics.Port),
-
-		Runner: runner,
-		Queue:  pub,
 	}
 
-	if conf.Storage.Enabled {
+	if *conf.Redis.Enabled {
+		redis, err := redis.New(ctx, conf)
+		if err != nil {
+			return nil, err
+		}
+		app.Redis = redis
+	}
+
+	if *conf.Database.Enabled {
+		db, err := postgres.Open(ctx, conf.Database.Uri(), conf.Telemetry.Tracing)
+		if err != nil {
+			return nil, err
+		}
+		app.Database = db
+		app.Queries = queries.New(db)
+		app.Users = users.New(app.Queries)
+	}
+
+	if *conf.Encryption.Enabled {
+		enc, err := crypto.NewEncryptor(conf.Encryption.Secret)
+		if err != nil {
+			return nil, err
+		}
+		app.Encryption = enc
+	}
+	if *conf.Jwt.Enabled {
+		app.Jwt = jwt.New(conf.Jwt.Secret, app.Redis)
+	}
+
+	if *conf.Runner.Enabled {
+		runner, err := workers.NewRunner(ctx, app.Redis)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialise runner: %w", err)
+		}
+		app.Runner = runner
+	}
+
+	if *conf.Queue.Enabled {
+		pub, err := queue.NewPublisher(queue.PublisherOpts{
+			Redis: queue.RedisOpts{
+				Addr:        conf.Redis.Addr,
+				Password:    conf.Redis.Password,
+				DB:          conf.Queue.DB,
+				OtelEnabled: *conf.Telemetry.Tracing.Enabled,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		app.Queue = pub
+	}
+
+	if *conf.Storage.Enabled {
 		storage, err := storage.New(conf.Storage)
 		if err != nil {
 			return nil, err
@@ -128,7 +134,7 @@ func (a *App) Worker(ctx context.Context, queues []queue.Queue) (*queue.Worker, 
 			Addr:        a.Config.Redis.Addr,
 			Password:    a.Config.Redis.Password,
 			DB:          a.Config.Queue.DB,
-			OtelEnabled: a.Config.Telemetry.Tracing.Enabled,
+			OtelEnabled: *a.Config.Telemetry.Tracing.Enabled,
 		},
 		Queues: queues,
 	})

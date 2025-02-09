@@ -30,6 +30,7 @@ func (l LogLevel) Level() zap.AtomicLevel {
 }
 
 type Postgres struct {
+	Enabled    *bool  `yaml:"enabled"      env:"ENABLED, overwrite, default=true"`
 	Url        string `yaml:"url"          env:"URL, overwrite"`
 	Host       string `yaml:"host"         env:"HOST, overwrite"`
 	Port       int    `yaml:"port"         env:"PORT, overwrite"`
@@ -61,6 +62,7 @@ func (p Postgres) Uri() string {
 }
 
 type Redis struct {
+	Enabled       *bool         `yaml:"enabled"         env:"ENABLED, overwrite, default=true"`
 	Addr          string        `yaml:"addr"            env:"ADDR, overwrite"`
 	Password      string        `yaml:"password"        env:"PASSWORD, overwrite"`
 	MaxFlushDelay time.Duration `yaml:"max_flush_delay" env:"MAX_FLUSH_DELAY, overwrite, default=100μs"`
@@ -68,18 +70,18 @@ type Redis struct {
 
 type Tracing struct {
 	ServiceName string  `yaml:"service_name" env:"SERVICE_NAME"`
-	Enabled     bool    `yaml:"enabled"      env:"ENABLED"`
+	Enabled     *bool   `yaml:"enabled"      env:"ENABLED"`
 	SampleRate  float64 `yaml:"sample_rate"  env:"SAMPLE_RATE, overwrite, default=1.0"`
 	Endpoint    string  `yaml:"endpoint"     env:"ENDPOINT"`
 }
 
 type Metrics struct {
-	Enabled bool `yaml:"enabled" env:"ENABLED"`
-	Port    int  `yaml:"port"    env:"PORT, overwrite, default=8766"`
+	Enabled *bool `yaml:"enabled" env:"ENABLED, overwrite, default=true"`
+	Port    int   `yaml:"port"    env:"PORT, overwrite, default=8766"`
 }
 
 type Sentry struct {
-	Enabled bool   `yaml:"enabled" env:"ENABLED"`
+	Enabled *bool  `yaml:"enabled" env:"ENABLED, overwrite, default=false"`
 	Dsn     string `yaml:"dsn"     env:"DSN"`
 }
 
@@ -132,7 +134,7 @@ func (p Profilers) PyroscopeTypes() []pyroscope.ProfileType {
 }
 
 type Profiling struct {
-	Enabled     bool   `yaml:"enabled"      env:"ENABLED"`
+	Enabled     *bool  `yaml:"enabled"      env:"ENABLED, overwrite, default=false"`
 	ServiceName string `yaml:"service_name" env:"SERVICE_NAME"`
 	Endpoint    string `yaml:"endpoint"     env:"ENDPOINT"`
 
@@ -155,13 +157,28 @@ type Http struct {
 }
 
 type Storage struct {
-	Enabled bool           `yaml:"enabled" env:"ENABLED, default=true"`
+	Enabled *bool          `yaml:"enabled" env:"ENABLED, default=true"`
 	Type    string         `yaml:"type"    env:"TYPE"`
 	Config  map[string]any `yaml:"config"`
 }
 
+type Jwt struct {
+	Enabled *bool  `yaml:"enabled" env:"ENABLED, overwrite, default=true"`
+	Secret  string `yaml:"secret"  env:"SECRET, overwrite"`
+}
+
+type Encryption struct {
+	Enabled *bool  `yaml:"enabled" env:"ENABLED, overwrite, default=true"`
+	Secret  string `yaml:"secret"  env:"SECRET, overwrite"`
+}
+
 type Queue struct {
-	DB int `yaml:"db" env:"DB, overwrite, default=5"`
+	Enabled *bool `yaml:"enabled" env:"ENABLED, overwrite, default=true"`
+	DB      int   `yaml:"db"      env:"DB, overwrite, default=5"`
+}
+
+type Runner struct {
+	Enabled *bool `yaml:"enabled" env:"ENABLED, overwrite, default=true"`
 }
 
 type Config struct {
@@ -170,8 +187,8 @@ type Config struct {
 
 	Storage Storage `yaml:"storage" env:", prefix=STORAGE_"`
 
-	EncryptionKey string `yaml:"encryption_key" env:"ENCRYPTION_KEY"`
-	JwtSecret     string `yaml:"jwt_secret"     env:"JWT_SECRET"`
+	Encryption Encryption `yaml:"encryption" env:", prefix=ENCRYPTION"`
+	Jwt        Jwt        `yaml:"jwt"        env:", prefix=JWT_"`
 
 	LogLevel LogLevel `yaml:"log_level" env:"LOG_LEVEL, overwrite, default=error"`
 	Database Postgres `yaml:"database"  env:", prefix=DB_"`
@@ -182,7 +199,8 @@ type Config struct {
 
 	Telemetry Telemetry `yaml:"telemetry" env:", prefix=TELEMETRY_"`
 
-	Queue Queue `yaml:"queue" env:", prefix=QUEUE_"`
+	Queue  Queue  `yaml:"queue"  env:", prefix=QUEUE_"`
+	Runner Runner `yaml:"runner" env:", prefix=RUNNER_"`
 }
 
 func Load(path string) (*Config, error) {
@@ -218,17 +236,23 @@ func (c *Config) validate() error {
 	if c.Name == "" {
 		return errors.New("name must be set")
 	}
-	if c.JwtSecret == "" {
-		return errors.New("jwt_secret must be set")
+	if *c.Jwt.Enabled && c.Jwt.Secret == "" {
+		return errors.New("jwt secret must be set")
 	}
-	if c.EncryptionKey == "" {
-		return errors.New("encryption_key must be set")
+	if *c.Encryption.Enabled && c.Encryption.Secret == "" {
+		return errors.New("encryption secret must be set")
 	}
-	if c.Telemetry.Sentry.Enabled && c.Telemetry.Sentry.Dsn == "" {
+	if *c.Telemetry.Sentry.Enabled && c.Telemetry.Sentry.Dsn == "" {
 		return errors.New("sentry dsn must be set when enabled")
 	}
-	if c.Telemetry.Profiling.Enabled && c.Telemetry.Profiling.Endpoint == "" {
+	if *c.Telemetry.Profiling.Enabled && c.Telemetry.Profiling.Endpoint == "" {
 		return errors.New("profiling endpoint must be set when enabled")
+	}
+	if !(*c.Redis.Enabled) && *c.Queue.Enabled {
+		return errors.New("queue cannot be enabled without redis")
+	}
+	if !(*c.Redis.Enabled) && *c.Runner.Enabled {
+		return errors.New("runner cannot be enabled without redis")
 	}
 	return nil
 }

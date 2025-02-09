@@ -29,14 +29,14 @@ func New(app *app.App) *Http {
 	e.HidePort = true
 
 	e.Use(mw.RequestID())
-	if app.Config.Telemetry.Tracing.Enabled {
+	if *app.Config.Telemetry.Tracing.Enabled {
 		e.Use(middleware.Tracing(app.Config.Telemetry.Tracing))
 	}
-	if app.Config.Telemetry.Metrics.Enabled {
+	if *app.Config.Telemetry.Metrics.Enabled {
 		e.Use(middleware.Metrics(app.Config.Telemetry, app.Metrics.Registry))
 	}
 	e.Use(middleware.User(app))
-	if app.Config.Telemetry.Sentry.Enabled {
+	if *app.Config.Telemetry.Sentry.Enabled {
 		e.Use(sentryecho.New(sentryecho.Options{
 			Repanic: true,
 		}))
@@ -161,7 +161,10 @@ func (h *Http) handleError(err error, c echo.Context) {
 			switch pgErr.Code {
 			// Unique constraint violation
 			case "23505":
-				c.JSON(http.StatusUnprocessableEntity, newError("a record with the same details already exists"))
+				c.JSON(
+					http.StatusUnprocessableEntity,
+					newError("a record with the same details already exists"),
+				)
 				return
 			}
 		}

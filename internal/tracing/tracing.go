@@ -62,18 +62,27 @@ func InitTracer(conf *config.Config, version string) (*trace.TracerProvider, err
 		trace.WithResource(res),
 	)
 	TracerProvider = tp
-	if conf.Telemetry.Profiling.Enabled {
+	if *conf.Telemetry.Profiling.Enabled {
 		ttp = otelpyroscope.NewTracerProvider(tp)
 	} else {
 		ttp = tp
 	}
 
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	otel.SetTextMapPropagator(
+		propagation.NewCompositeTextMapPropagator(
+			propagation.TraceContext{},
+			propagation.Baggage{},
+		),
+	)
 	otel.SetTracerProvider(ttp)
 	return tp, nil
 }
 
-func NewSpan(ctx context.Context, name string, opts ...otrace.SpanStartOption) (context.Context, otrace.Span) {
+func NewSpan(
+	ctx context.Context,
+	name string,
+	opts ...otrace.SpanStartOption,
+) (context.Context, otrace.Span) {
 	if TracerProvider == nil {
 		return otel.Tracer(name).Start(ctx, name, opts...)
 	}
