@@ -209,7 +209,7 @@ func Load(path string) (*Config, error) {
 }
 
 func (c *Config) validate() error {
-	if c.Database.Url == "" {
+	if c.Database.Uri() == "" {
 		return errors.New("invalid db url")
 	}
 	if c.Redis.Addr == "" {
