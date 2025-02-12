@@ -1,4 +1,4 @@
-FROM golang:1.23 AS gob
+FROM golang:1.24 AS gob
 
 ARG version="unknown"
 
