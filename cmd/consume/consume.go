@@ -23,6 +23,7 @@ func New(app *app.App) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to instantiate queue consumer: %w", err)
 			}
+			defer consumer.Shutdown(context.Background())
 
 			go app.Probes.Start(cmd.Context())
 

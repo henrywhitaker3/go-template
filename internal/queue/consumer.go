@@ -25,10 +25,13 @@ const (
 	DefaultQueue Queue = "default"
 )
 
+type ShutdownFunc = func(context.Context) error
+
 type Worker struct {
 	server    *asynq.Server
 	inspector *asynq.Inspector
 	handlers  map[Task]Handler
+	shutdown  []ShutdownFunc
 }
 
 type ServerOpts struct {
@@ -86,6 +89,7 @@ func NewWorker(ctx context.Context, opts ServerOpts) (*Worker, error) {
 		server:    srv,
 		inspector: inspector,
 		handlers:  map[Task]Handler{},
+		shutdown:  []func(ctx context.Context) error{},
 	}, nil
 }
 
@@ -94,7 +98,12 @@ type Handler interface {
 }
 
 func (w *Worker) handler(ctx context.Context, task *asynq.Task) error {
-	ctx, span := tracing.NewSpan(ctx, "HandleTask", trace.WithAttributes(attribute.String("task", task.Type())), trace.WithSpanKind(trace.SpanKindConsumer))
+	ctx, span := tracing.NewSpan(
+		ctx,
+		"HandleTask",
+		trace.WithAttributes(attribute.String("task", task.Type())),
+		trace.WithSpanKind(trace.SpanKindConsumer),
+	)
 	defer span.End()
 
 	labels := prometheus.Labels{"task": task.Type()}
@@ -118,6 +127,19 @@ func (w *Worker) handler(ctx context.Context, task *asynq.Task) error {
 
 func (w *Worker) RegisterHandler(kind Task, h Handler) {
 	w.handlers[kind] = h
+}
+
+func (w *Worker) RegisterShutdown(f ShutdownFunc) {
+	w.shutdown = append(w.shutdown, f)
+}
+
+func (w *Worker) Shutdown(ctx context.Context) error {
+	for _, f := range w.shutdown {
+		if err := f(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Run the queue worker. Blocking.
