@@ -1,6 +1,6 @@
 module github.com/henrywhitaker3/go-template
 
-go 1.23.1
+go 1.24.0
 
 require (
 	github.com/XSAM/otelsql v0.37.0
