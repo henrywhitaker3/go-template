@@ -5,23 +5,27 @@ import (
 	"testing"
 	"time"
 
+	"github.com/henrywhitaker3/boiler"
+	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/stretchr/testify/require"
 )
 
 func TestItLogsOutAUser(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
 
-	user, _ := test.User(t, app)
+	user, _ := test.User(t, b)
 
-	token, err := app.Jwt.NewForUser(user, time.Minute)
+	jwt, err := boiler.Resolve[*jwt.Jwt](b)
 	require.Nil(t, err)
 
-	rec := test.Post(t, app, "/auth/logout", nil, token)
+	token, err := jwt.NewForUser(user, time.Minute)
+	require.Nil(t, err)
+
+	rec := test.Post(t, b, "/auth/logout", nil, token)
 
 	require.Equal(t, http.StatusAccepted, rec.Code)
 
-	rec = test.Get(app, "/auth/me", token)
+	rec = test.Get(t, b, "/auth/me", token)
 	require.Equal(t, http.StatusUnauthorized, rec.Code)
 }

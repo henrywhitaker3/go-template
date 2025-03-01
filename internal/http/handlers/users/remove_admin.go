@@ -6,18 +6,21 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/henrywhitaker3/go-template/internal/app"
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/labstack/echo/v4"
 )
 
 type RemoveAdminHandler struct {
-	app *app.App
+	users *users.Users
 }
 
-func NewRemoveAdmin(app *app.App) *RemoveAdminHandler {
-	return &RemoveAdminHandler{app: app}
+func NewRemoveAdmin(b *boiler.Boiler) *RemoveAdminHandler {
+	return &RemoveAdminHandler{
+		users: boiler.MustResolve[*users.Users](b),
+	}
 }
 
 func (m *RemoveAdminHandler) Handler() echo.HandlerFunc {
@@ -27,7 +30,7 @@ func (m *RemoveAdminHandler) Handler() echo.HandlerFunc {
 			return common.ErrBadRequest
 		}
 
-		user, err := m.app.Users.Get(c.Request().Context(), req.ID)
+		user, err := m.users.Get(c.Request().Context(), req.ID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return fmt.Errorf("%w: user not found", common.ErrValidation)
@@ -35,7 +38,7 @@ func (m *RemoveAdminHandler) Handler() echo.HandlerFunc {
 			return common.Stack(err)
 		}
 
-		if err := m.app.Users.RemoveAdmin(c.Request().Context(), user); err != nil {
+		if err := m.users.RemoveAdmin(c.Request().Context(), user); err != nil {
 			return common.Stack(err)
 		}
 
@@ -54,7 +57,9 @@ func (m *RemoveAdminHandler) Path() string {
 func (m *RemoveAdminHandler) Middleware() []echo.MiddlewareFunc {
 	return []echo.MiddlewareFunc{
 		middleware.Authenticated(),
-		middleware.Admin(m.app),
+		middleware.Admin(middleware.AdminOpts{
+			Users: m.users,
+		}),
 		middleware.Bind[AdminRequest](),
 	}
 }

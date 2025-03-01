@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/henrywhitaker3/go-template/internal/app"
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/labstack/echo/v4"
@@ -45,11 +46,15 @@ type RegisterResponse struct {
 }
 
 type RegisterHandler struct {
-	app *app.App
+	users *users.Users
+	jwt   *jwt.Jwt
 }
 
-func NewRegister(app *app.App) *RegisterHandler {
-	return &RegisterHandler{app: app}
+func NewRegister(b *boiler.Boiler) *RegisterHandler {
+	return &RegisterHandler{
+		users: boiler.MustResolve[*users.Users](b),
+		jwt:   boiler.MustResolve[*jwt.Jwt](b),
+	}
 }
 
 func (r *RegisterHandler) Handler() echo.HandlerFunc {
@@ -59,7 +64,7 @@ func (r *RegisterHandler) Handler() echo.HandlerFunc {
 			return common.ErrBadRequest
 		}
 
-		user, err := r.app.Users.CreateUser(c.Request().Context(), users.CreateParams{
+		user, err := r.users.CreateUser(c.Request().Context(), users.CreateParams{
 			Name:     req.Name,
 			Email:    req.Email,
 			Password: req.Password,
@@ -68,7 +73,7 @@ func (r *RegisterHandler) Handler() echo.HandlerFunc {
 			return common.Stack(err)
 		}
 
-		token, err := r.app.Jwt.NewForUser(user, time.Hour)
+		token, err := r.jwt.NewForUser(user, time.Hour)
 		if err != nil {
 			return common.Stack(err)
 		}

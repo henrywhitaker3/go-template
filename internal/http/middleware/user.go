@@ -3,13 +3,19 @@ package middleware
 import (
 	"github.com/getsentry/sentry-go"
 	sentryecho "github.com/getsentry/sentry-go/echo"
-	"github.com/henrywhitaker3/go-template/internal/app"
+	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
+	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
 	"github.com/labstack/echo/v4"
 )
 
-func User(app *app.App) echo.MiddlewareFunc {
+type UserOpts struct {
+	Jwt    *jwt.Jwt
+	Config *config.Config
+}
+
+func User(opts UserOpts) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			ctx, span := tracing.NewSpan(c.Request().Context(), "GetRequestUser")
@@ -20,13 +26,13 @@ func User(app *app.App) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			user, err := app.Jwt.VerifyUser(ctx, token)
+			user, err := opts.Jwt.VerifyUser(ctx, token)
 			if err == nil {
 				c.SetRequest(c.Request().WithContext(common.SetUser(c.Request().Context(), user)))
 			}
 
 			if user != nil {
-				if *app.Config.Telemetry.Sentry.Enabled {
+				if *opts.Config.Telemetry.Sentry.Enabled {
 					if hub := sentryecho.GetHubFromContext(c); hub != nil {
 						hub.Scope().SetUser(sentry.User{
 							ID:    user.ID.String(),
@@ -35,7 +41,7 @@ func User(app *app.App) echo.MiddlewareFunc {
 						})
 					}
 				}
-				if *app.Config.Telemetry.Tracing.Enabled {
+				if *opts.Config.Telemetry.Tracing.Enabled {
 					tracing.AddString(c.Request().Context(), "user_id", user.ID.String())
 					tracing.AddString(c.Request().Context(), "request_id", common.RequestID(c))
 				}

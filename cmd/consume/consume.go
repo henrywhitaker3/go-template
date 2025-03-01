@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/probes"
@@ -11,37 +12,45 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func New(app *app.App) *cobra.Command {
+func New(b *boiler.Boiler) *cobra.Command {
 	return &cobra.Command{
-		Use:   "consume [queue]",
-		Short: "Run a queue consumer",
-		Args:  cobra.ExactArgs(1),
+		Use:     "consume [queue]",
+		Short:   "Run a queue consumer",
+		GroupID: "app",
+		PreRun: func(*cobra.Command, []string) {
+			app.RegisterBase(b)
+			b.MustBootstrap()
+		},
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			app.Metrics.Register(metrics.QueueConsumerMetrics)
+			metricsServer, err := boiler.Resolve[*metrics.Metrics](b)
+			if err != nil {
+				return err
+			}
+			metricsServer.Register(metrics.QueueConsumerMetrics)
+			go metricsServer.Start(cmd.Context())
+			defer metricsServer.Stop(context.Background())
 
-			consumer, err := app.Worker(cmd.Context(), []queue.Queue{queue.Queue(args[0])})
+			consumer, err := app.Worker(b, queue.Queue(args[0]))
 			if err != nil {
 				return fmt.Errorf("failed to instantiate queue consumer: %w", err)
 			}
-			defer consumer.Shutdown(context.Background())
-
-			go app.Probes.Start(cmd.Context())
-
 			go func() {
 				<-cmd.Context().Done()
-				ctx := context.Background()
-				probes.Unready()
-
-				app.Metrics.Stop(ctx)
-				app.Probes.Stop(ctx)
+				consumer.Shutdown(context.Background())
 			}()
 
-			go app.Metrics.Start(cmd.Context())
+			probes, err := boiler.Resolve[*probes.Probes](b)
+			if err != nil {
+				return err
+			}
+			go probes.Start(cmd.Context())
+			defer probes.Stop(context.Background())
 
 			probes.Ready()
 			probes.Healthy()
 
-			consumer.RegisterMetrics(app.Metrics.Registry)
+			consumer.RegisterMetrics(metricsServer.Registry)
 
 			return consumer.Consume()
 		},

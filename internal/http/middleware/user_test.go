@@ -7,32 +7,43 @@ import (
 	"testing"
 	"time"
 
+	"github.com/henrywhitaker3/boiler"
+	ohttp "github.com/henrywhitaker3/go-template/internal/http"
+	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 )
 
 func TestItAuthenticatesByHeaderToken(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
 
-	user, _ := test.User(t, app)
-	token, err := app.Jwt.NewForUser(user, time.Minute)
+	srv, err := boiler.Resolve[*ohttp.Http](b)
+	require.Nil(t, err)
+	jwt, err := boiler.Resolve[*jwt.Jwt](b)
+	require.Nil(t, err)
+
+	user, _ := test.User(t, b)
+	token, err := jwt.NewForUser(user, time.Minute)
 	require.Nil(t, err)
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
 	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %s", token))
 	rec := httptest.NewRecorder()
-	app.Http.ServeHTTP(rec, req)
+	srv.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)
 }
 
 func TestItAuthenticatesByHeaderCookie(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
 
-	user, _ := test.User(t, app)
-	token, err := app.Jwt.NewForUser(user, time.Minute)
+	srv, err := boiler.Resolve[*ohttp.Http](b)
+	require.Nil(t, err)
+	jwt, err := boiler.Resolve[*jwt.Jwt](b)
+	require.Nil(t, err)
+
+	user, _ := test.User(t, b)
+	token, err := jwt.NewForUser(user, time.Minute)
 	require.Nil(t, err)
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
@@ -43,6 +54,6 @@ func TestItAuthenticatesByHeaderCookie(t *testing.T) {
 		HttpOnly: true,
 	})
 	rec := httptest.NewRecorder()
-	app.Http.ServeHTTP(rec, req)
+	srv.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)
 }

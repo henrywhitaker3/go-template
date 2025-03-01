@@ -5,8 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/henrywhitaker3/go-template/internal/workers"
+	"github.com/redis/rueidis"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,8 +40,9 @@ func (t *testWorker) Executions() int {
 }
 
 func TestItRunsWorkers(t *testing.T) {
-	app, cancel := test.App(t, true)
-	defer cancel()
+	b := test.Boiler(t)
+	redis, err := boiler.Resolve[rueidis.Client](b)
+	require.Nil(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
@@ -50,7 +53,7 @@ func TestItRunsWorkers(t *testing.T) {
 		executions: 0,
 	}
 
-	runner, err := workers.NewRunner(ctx, app.Redis)
+	runner, err := workers.NewRunner(ctx, redis)
 	require.Nil(t, err)
 	require.Nil(t, runner.Register(worker))
 	runner.Run()

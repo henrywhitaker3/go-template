@@ -7,21 +7,22 @@ import (
 	"testing"
 	"time"
 
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/http/handlers/users"
+	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/stretchr/testify/require"
 )
 
 func TestItLogsInAUser(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	user, password := test.User(t, app)
+	user, password := test.User(t, b)
 
-	rec := test.Post(t, app, "/auth/login", users.LoginRequest{
+	rec := test.Post(t, b, "/auth/login", users.LoginRequest{
 		Email:    user.Email,
 		Password: password,
 	}, "")
@@ -31,18 +32,20 @@ func TestItLogsInAUser(t *testing.T) {
 	resp := &users.LoginResponse{}
 	require.Nil(t, json.Unmarshal(rec.Body.Bytes(), resp))
 
-	tuser, err := app.Jwt.VerifyUser(ctx, resp.Token)
+	jwt, err := boiler.Resolve[*jwt.Jwt](b)
+	require.Nil(t, err)
+
+	tuser, err := jwt.VerifyUser(ctx, resp.Token)
 	require.Nil(t, err)
 	require.Equal(t, user.ID, tuser.ID)
 }
 
 func TestItErrorsWhenIncorrectPassword(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
 
-	user, _ := test.User(t, app)
+	user, _ := test.User(t, b)
 
-	rec := test.Post(t, app, "/auth/login", users.LoginRequest{
+	rec := test.Post(t, b, "/auth/login", users.LoginRequest{
 		Email:    user.Email,
 		Password: test.Sentence(5),
 	}, "")
@@ -51,10 +54,9 @@ func TestItErrorsWhenIncorrectPassword(t *testing.T) {
 }
 
 func TestItErrorsWhenIncorrectEmail(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
 
-	rec := test.Post(t, app, "/auth/login", users.LoginRequest{
+	rec := test.Post(t, b, "/auth/login", users.LoginRequest{
 		Email:    test.Email(),
 		Password: test.Sentence(5),
 	}, "")

@@ -8,65 +8,79 @@ import (
 	"net/http"
 
 	sentryecho "github.com/getsentry/sentry-go/echo"
-	"github.com/henrywhitaker3/go-template/internal/app"
+	"github.com/henrywhitaker3/boiler"
+	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/handlers/users"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/logger"
+	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
 	mw "github.com/labstack/echo/v4/middleware"
 )
 
 type Http struct {
-	e   *echo.Echo
-	app *app.App
+	e *echo.Echo
+	b *boiler.Boiler
 }
 
-func New(app *app.App) *Http {
+func New(b *boiler.Boiler) *Http {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
 
+	conf := boiler.MustResolve[*config.Config](b)
+
 	e.Use(mw.RequestID())
-	if *app.Config.Telemetry.Tracing.Enabled {
-		e.Use(middleware.Tracing(app.Config.Telemetry.Tracing))
+	if *conf.Telemetry.Tracing.Enabled {
+		e.Use(middleware.Tracing(conf.Telemetry.Tracing))
 	}
-	if *app.Config.Telemetry.Metrics.Enabled {
-		e.Use(middleware.Metrics(app.Config.Telemetry, app.Metrics.Registry))
+	if *conf.Telemetry.Metrics.Enabled {
+		e.Use(middleware.Metrics(
+			conf.Telemetry,
+			boiler.MustResolve[*metrics.Metrics](b).Registry,
+		))
 	}
-	e.Use(middleware.User(app))
-	if *app.Config.Telemetry.Sentry.Enabled {
+	e.Use(middleware.User(middleware.UserOpts{
+		Config: conf,
+		Jwt:    boiler.MustResolve[*jwt.Jwt](b),
+	}))
+	if *conf.Telemetry.Sentry.Enabled {
 		e.Use(sentryecho.New(sentryecho.Options{
 			Repanic: true,
 		}))
 	}
-	e.Use(middleware.Zap(app.Config.LogLevel.Level()))
+	e.Use(middleware.Zap(conf.LogLevel.Level()))
 	e.Use(mw.Recover())
 	e.Use(middleware.Logger())
 	e.Use(mw.CORS())
-	e.Use(middleware.Invalidate(app.Redis))
 
 	h := &Http{
-		e:   e,
-		app: app,
+		e: e,
+		b: b,
 	}
 
 	h.e.HTTPErrorHandler = h.handleError
 
-	h.Register(users.NewLogin(app))
-	h.Register(users.NewLogout(app))
-	h.Register(users.NewRegister(app))
-	h.Register(users.NewMe(app))
-	h.Register(users.NewMakeAdmin(app))
-	h.Register(users.NewRemoveAdmin(app))
+	h.Register(users.NewLogin(b))
+	h.Register(users.NewLogout(b))
+	h.Register(users.NewRegister(b))
+	h.Register(users.NewMe())
+	h.Register(users.NewMakeAdmin(b))
+	h.Register(users.NewRemoveAdmin(b))
 
 	return h
 }
 
 func (h *Http) Start(ctx context.Context) error {
-	logger.Logger(ctx).Infow("starting http server", "port", h.app.Config.Http.Port)
-	if err := h.e.Start(fmt.Sprintf(":%d", h.app.Config.Http.Port)); err != nil {
+	conf, err := boiler.Resolve[*config.Config](h.b)
+	if err != nil {
+		return err
+	}
+	logger.Logger(ctx).Infow("starting http server", "port", conf.Http.Port)
+	if err := h.e.Start(fmt.Sprintf(":%d", conf.Http.Port)); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			return err
 		}

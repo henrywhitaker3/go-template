@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/go-template/internal/uuid"
@@ -12,8 +13,10 @@ import (
 )
 
 func TestItCreatesAUser(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
+
+	us, err := boiler.Resolve[*users.Users](b)
+	require.Nil(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -49,7 +52,7 @@ func TestItCreatesAUser(t *testing.T) {
 
 	for _, c := range tcs {
 		t.Run(c.name, func(t *testing.T) {
-			user, err := app.Users.CreateUser(ctx, c.params)
+			user, err := us.CreateUser(ctx, c.params)
 			if c.shouldError {
 				require.NotNil(t, err)
 				return
@@ -62,13 +65,15 @@ func TestItCreatesAUser(t *testing.T) {
 }
 
 func TestItGetsUsersById(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	user, _ := test.User(t, app)
+	us, err := boiler.Resolve[*users.Users](b)
+	require.Nil(t, err)
+
+	user, _ := test.User(t, b)
 
 	type testCase struct {
 		name        string
@@ -98,7 +103,7 @@ func TestItGetsUsersById(t *testing.T) {
 				id = c.user.ID
 			}
 
-			user, err := app.Users.Get(ctx, id)
+			user, err := us.Get(ctx, id)
 			if c.shouldError {
 				require.NotNil(t, err)
 				return
@@ -113,13 +118,15 @@ func TestItGetsUsersById(t *testing.T) {
 }
 
 func TestItGetsUsersByEmail(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
+
+	us, err := boiler.Resolve[*users.Users](b)
+	require.Nil(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	user, _ := test.User(t, app)
+	user, _ := test.User(t, b)
 
 	type testCase struct {
 		name        string
@@ -149,7 +156,7 @@ func TestItGetsUsersByEmail(t *testing.T) {
 				email = c.user.Email
 			}
 
-			user, err := app.Users.GetByEmail(ctx, email)
+			user, err := us.GetByEmail(ctx, email)
 			if c.shouldError {
 				require.NotNil(t, err)
 				return
@@ -164,16 +171,18 @@ func TestItGetsUsersByEmail(t *testing.T) {
 }
 
 func TestItGetsUserByLogin(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
+
+	us, err := boiler.Resolve[*users.Users](b)
+	require.Nil(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	user, password := test.User(t, app)
+	user, password := test.User(t, b)
 
-	delUser, delPassword := test.User(t, app)
-	require.Nil(t, app.Users.DeleteUser(ctx, delUser.ID))
+	delUser, delPassword := test.User(t, b)
+	require.Nil(t, us.DeleteUser(ctx, delUser.ID))
 
 	type testCase struct {
 		name        string
@@ -218,7 +227,7 @@ func TestItGetsUserByLogin(t *testing.T) {
 				email = c.user.Email
 			}
 
-			user, err := app.Users.Login(ctx, email, c.password)
+			user, err := us.Login(ctx, email, c.password)
 			if c.shouldError {
 				require.NotNil(t, err)
 				return
@@ -233,27 +242,29 @@ func TestItGetsUserByLogin(t *testing.T) {
 }
 
 func TestItMakesAUserAdmin(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
+
+	us, err := boiler.Resolve[*users.Users](b)
+	require.Nil(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	user, _ := test.User(t, app)
+	user, _ := test.User(t, b)
 
 	require.False(t, user.Admin)
 
-	require.Nil(t, app.Users.MakeAdmin(ctx, user))
+	require.Nil(t, us.MakeAdmin(ctx, user))
 	require.True(t, user.Admin)
 
-	user, err := app.Users.Get(ctx, user.ID)
+	user, err = us.Get(ctx, user.ID)
 	require.Nil(t, err)
 	require.True(t, user.Admin)
 
-	require.Nil(t, app.Users.RemoveAdmin(ctx, user))
+	require.Nil(t, us.RemoveAdmin(ctx, user))
 	require.False(t, user.Admin)
 
-	user, err = app.Users.Get(ctx, user.ID)
+	user, err = us.Get(ctx, user.ID)
 	require.Nil(t, err)
 	require.False(t, user.Admin)
 }

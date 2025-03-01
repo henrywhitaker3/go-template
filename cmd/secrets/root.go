@@ -6,8 +6,9 @@ import (
 
 func New() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "secrets",
-		Short: "Secrets utilities",
+		Use:     "secrets",
+		Short:   "Secrets utilities",
+		GroupID: "unconf",
 	}
 
 	cmd.AddCommand(newKey())

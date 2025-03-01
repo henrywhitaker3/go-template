@@ -6,20 +6,27 @@ import (
 	"testing"
 	"time"
 
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/go-template/internal/uuid"
+	"github.com/redis/rueidis"
 	"github.com/stretchr/testify/require"
 )
 
 func TestItGetsTheCurrentUser(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
 
-	user, _ := test.User(t, app)
+	user, _ := test.User(t, b)
 
-	token, err := app.Jwt.NewForUser(user, time.Minute)
+	jwts, err := boiler.Resolve[*jwt.Jwt](b)
+	require.Nil(t, err)
+
+	redis, err := boiler.Resolve[rueidis.Client](b)
+	require.Nil(t, err)
+
+	token, err := jwts.NewForUser(user, time.Minute)
 	require.Nil(t, err)
 
 	type testCase struct {
@@ -29,7 +36,7 @@ func TestItGetsTheCurrentUser(t *testing.T) {
 		code  int
 	}
 
-	tempJwt := jwt.New("bongo", app.Redis)
+	tempJwt := jwt.New("bongo", redis)
 
 	randToken, err := tempJwt.NewForUser(&users.User{
 		ID:    uuid.MustNew(),
@@ -55,7 +62,7 @@ func TestItGetsTheCurrentUser(t *testing.T) {
 
 	for _, c := range tcs {
 		t.Run(c.name, func(t *testing.T) {
-			rec := test.Get(app, "/auth/me", c.token)
+			rec := test.Get(t, b, "/auth/me", c.token)
 			require.Equal(t, c.code, rec.Code)
 			if c.code == http.StatusOK {
 				var resp users.User

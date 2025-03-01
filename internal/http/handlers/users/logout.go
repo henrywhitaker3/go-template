@@ -3,24 +3,27 @@ package users
 import (
 	"net/http"
 
-	"github.com/henrywhitaker3/go-template/internal/app"
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/labstack/echo/v4"
 )
 
 type LogoutHandler struct {
-	app *app.App
+	jwt *jwt.Jwt
 }
 
-func NewLogout(app *app.App) *LogoutHandler {
-	return &LogoutHandler{app: app}
+func NewLogout(b *boiler.Boiler) *LogoutHandler {
+	return &LogoutHandler{
+		jwt: boiler.MustResolve[*jwt.Jwt](b),
+	}
 }
 
 func (l *LogoutHandler) Handler() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		token := common.GetToken(c.Request())
-		if err := l.app.Jwt.InvalidateUser(c.Request().Context(), token); err != nil {
+		if err := l.jwt.InvalidateToken(c.Request().Context(), token); err != nil {
 			return common.Stack(err)
 		}
 		return c.NoContent(http.StatusAccepted)

@@ -10,8 +10,7 @@ import (
 )
 
 func TestItRegistersUsers(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
 
 	type testCase struct {
 		name string
@@ -93,7 +92,7 @@ func TestItRegistersUsers(t *testing.T) {
 
 	for _, c := range tcs {
 		t.Run(c.name, func(t *testing.T) {
-			rec := test.Post(t, app, "/auth/register", c.req, "")
+			rec := test.Post(t, b, "/auth/register", c.req, "")
 			require.Equal(t, c.code, rec.Code)
 			t.Log(rec.Body.String())
 		})

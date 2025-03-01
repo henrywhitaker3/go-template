@@ -12,18 +12,18 @@ var (
 )
 
 func Wrap(ctx context.Context, level zap.AtomicLevel) context.Context {
-	return ctxgen.WithValue(ctx, "logger", newLogger(level))
+	return ctxgen.WithValue(ctx, "logger", NewLogger(level))
 }
 
 func Logger(ctx context.Context) *zap.SugaredLogger {
 	log, ok := ctxgen.ValueOk[*zap.SugaredLogger](ctx, "logger")
 	if !ok {
-		log = newLogger(zap.NewAtomicLevelAt(zap.ErrorLevel))
+		log = NewLogger(zap.NewAtomicLevelAt(zap.ErrorLevel))
 	}
 	return log
 }
 
-func newLogger(level zap.AtomicLevel) *zap.SugaredLogger {
+func NewLogger(level zap.AtomicLevel) *zap.SugaredLogger {
 	if zl == nil {
 		logConfig := zap.NewProductionConfig()
 		logConfig.OutputPaths = []string{"stdout"}

@@ -9,10 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/storage"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/stretchr/testify/require"
+	"github.com/thanos-io/objstore"
 )
 
 func TestItStoresFilesInFilesystem(t *testing.T) {
@@ -39,8 +41,10 @@ func TestItStoresFilesInFilesystem(t *testing.T) {
 }
 
 func TestItStoresFilesInS3(t *testing.T) {
-	app, cancel := test.App(t)
-	defer cancel()
+	b := test.Boiler(t)
+
+	storage, err := boiler.Resolve[objstore.Bucket](b)
+	require.Nil(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -48,9 +52,9 @@ func TestItStoresFilesInS3(t *testing.T) {
 	name := test.Word()
 	contents := test.Sentence(15)
 
-	require.Nil(t, app.Storage.Upload(ctx, name, strings.NewReader(contents)))
+	require.Nil(t, storage.Upload(ctx, name, strings.NewReader(contents)))
 
-	file, err := app.Storage.Get(ctx, name)
+	file, err := storage.Get(ctx, name)
 	require.Nil(t, err)
 	body, err := io.ReadAll(file)
 	require.Nil(t, err)

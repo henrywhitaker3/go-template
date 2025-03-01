@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/henrywhitaker3/go-template/internal/app"
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/go-template/internal/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -22,11 +23,13 @@ func (a AdminRequest) Validate() error {
 }
 
 type MakeAdminHandler struct {
-	app *app.App
+	users *users.Users
 }
 
-func NewMakeAdmin(app *app.App) *MakeAdminHandler {
-	return &MakeAdminHandler{app: app}
+func NewMakeAdmin(b *boiler.Boiler) *MakeAdminHandler {
+	return &MakeAdminHandler{
+		users: boiler.MustResolve[*users.Users](b),
+	}
 }
 
 func (m *MakeAdminHandler) Handler() echo.HandlerFunc {
@@ -36,7 +39,7 @@ func (m *MakeAdminHandler) Handler() echo.HandlerFunc {
 			return common.ErrBadRequest
 		}
 
-		user, err := m.app.Users.Get(c.Request().Context(), req.ID)
+		user, err := m.users.Get(c.Request().Context(), req.ID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return fmt.Errorf("%w: user not found", common.ErrValidation)
@@ -44,7 +47,7 @@ func (m *MakeAdminHandler) Handler() echo.HandlerFunc {
 			return common.Stack(err)
 		}
 
-		if err := m.app.Users.MakeAdmin(c.Request().Context(), user); err != nil {
+		if err := m.users.MakeAdmin(c.Request().Context(), user); err != nil {
 			return common.Stack(err)
 		}
 
@@ -63,7 +66,9 @@ func (m *MakeAdminHandler) Path() string {
 func (m *MakeAdminHandler) Middleware() []echo.MiddlewareFunc {
 	return []echo.MiddlewareFunc{
 		middleware.Authenticated(),
-		middleware.Admin(m.app),
+		middleware.Admin(middleware.AdminOpts{
+			Users: m.users,
+		}),
 		middleware.Bind[AdminRequest](),
 	}
 }

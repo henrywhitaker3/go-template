@@ -3,7 +3,7 @@ package seed
 import (
 	"context"
 
-	"github.com/henrywhitaker3/go-template/internal/app"
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/henrywhitaker3/go-template/internal/users"
 )
@@ -14,8 +14,8 @@ var (
 	}
 )
 
-func User(ctx context.Context, app *app.App) error {
-	_, err := app.Users.CreateUser(ctx, users.CreateParams{
+func User(ctx context.Context, b *boiler.Boiler) error {
+	_, err := boiler.MustResolve[*users.Users](b).CreateUser(ctx, users.CreateParams{
 		Name:     test.Name(),
 		Email:    test.Email(),
 		Password: test.Letters(15),

@@ -9,12 +9,19 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/henrywhitaker3/go-template/internal/app"
+	"github.com/henrywhitaker3/boiler"
+	ohttp "github.com/henrywhitaker3/go-template/internal/http"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 )
 
-func Get(app *app.App, url string, apikey string, headers ...map[string]string) *httptest.ResponseRecorder {
+func Get(
+	t *testing.T,
+	b *boiler.Boiler,
+	url string,
+	apikey string,
+	headers ...map[string]string,
+) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	if apikey != "" {
 		req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("Bearer %s", apikey))
@@ -29,12 +36,22 @@ func Get(app *app.App, url string, apikey string, headers ...map[string]string) 
 		}
 	}
 
-	app.Http.ServeHTTP(rec, req)
+	srv, err := boiler.Resolve[*ohttp.Http](b)
+	require.Nil(t, err)
+
+	srv.ServeHTTP(rec, req)
 
 	return rec
 }
 
-func Post(t *testing.T, app *app.App, url string, body any, apikey string, headers ...map[string]string) *httptest.ResponseRecorder {
+func Post(
+	t *testing.T,
+	b *boiler.Boiler,
+	url string,
+	body any,
+	apikey string,
+	headers ...map[string]string,
+) *httptest.ResponseRecorder {
 	var reader io.Reader
 	if body != nil {
 		by, err := json.Marshal(body)
@@ -56,13 +73,23 @@ func Post(t *testing.T, app *app.App, url string, body any, apikey string, heade
 		}
 	}
 
+	srv, err := boiler.Resolve[*ohttp.Http](b)
+	require.Nil(t, err)
+
 	rec := httptest.NewRecorder()
-	app.Http.ServeHTTP(rec, req)
+	srv.ServeHTTP(rec, req)
 
 	return rec
 }
 
-func Put(t *testing.T, app *app.App, url string, body any, apikey string, headers ...map[string]string) *httptest.ResponseRecorder {
+func Put(
+	t *testing.T,
+	b *boiler.Boiler,
+	url string,
+	body any,
+	apikey string,
+	headers ...map[string]string,
+) *httptest.ResponseRecorder {
 	var reader io.Reader
 	if body != nil {
 		by, err := json.Marshal(body)
@@ -84,13 +111,23 @@ func Put(t *testing.T, app *app.App, url string, body any, apikey string, header
 		}
 	}
 
+	srv, err := boiler.Resolve[*ohttp.Http](b)
+	require.Nil(t, err)
+
 	rec := httptest.NewRecorder()
-	app.Http.ServeHTTP(rec, req)
+	srv.ServeHTTP(rec, req)
 
 	return rec
 }
 
-func Patch(t *testing.T, app *app.App, url string, body any, apikey string, headers ...map[string]string) *httptest.ResponseRecorder {
+func Patch(
+	t *testing.T,
+	b *boiler.Boiler,
+	url string,
+	body any,
+	apikey string,
+	headers ...map[string]string,
+) *httptest.ResponseRecorder {
 	var reader io.Reader
 	if body != nil {
 		by, err := json.Marshal(body)
@@ -112,13 +149,23 @@ func Patch(t *testing.T, app *app.App, url string, body any, apikey string, head
 		}
 	}
 
+	srv, err := boiler.Resolve[*ohttp.Http](b)
+	require.Nil(t, err)
+
 	rec := httptest.NewRecorder()
-	app.Http.ServeHTTP(rec, req)
+	srv.ServeHTTP(rec, req)
 
 	return rec
 }
 
-func Delete(t *testing.T, app *app.App, url string, body any, apikey string, headers ...map[string]string) *httptest.ResponseRecorder {
+func Delete(
+	t *testing.T,
+	b *boiler.Boiler,
+	url string,
+	body any,
+	apikey string,
+	headers ...map[string]string,
+) *httptest.ResponseRecorder {
 	var reader io.Reader
 	if body != nil {
 		by, err := json.Marshal(body)
@@ -140,8 +187,11 @@ func Delete(t *testing.T, app *app.App, url string, body any, apikey string, hea
 		}
 	}
 
+	srv, err := boiler.Resolve[*ohttp.Http](b)
+	require.Nil(t, err)
+
 	rec := httptest.NewRecorder()
-	app.Http.ServeHTTP(rec, req)
+	srv.ServeHTTP(rec, req)
 
 	return rec
 }

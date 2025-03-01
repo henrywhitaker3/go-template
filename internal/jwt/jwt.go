@@ -67,6 +67,17 @@ func (j *Jwt) NewForUser(user *users.User, expires time.Duration) (string, error
 }
 
 func (j *Jwt) VerifyUser(ctx context.Context, token string) (*users.User, error) {
+	if err := j.isInvalidated(ctx, token); err != nil {
+		return nil, err
+	}
+	claims, err := j.getUserClaims(token)
+	if err != nil {
+		return nil, err
+	}
+	return claims.User, nil
+}
+
+func (j *Jwt) isInvalidated(ctx context.Context, token string) error {
 	hash := crypto.Sum(token)
 
 	// Check if the token has been invalidated first
@@ -74,17 +85,11 @@ func (j *Jwt) VerifyUser(ctx context.Context, token string) (*users.User, error)
 	res := j.redis.Do(ctx, cmd)
 	if err := res.Error(); err != nil {
 		if !errors.Is(err, rueidis.Nil) {
-			return nil, err
+			return err
 		}
-	} else {
-		return nil, ErrInvalidated
+		return nil
 	}
-
-	claims, err := j.getUserClaims(token)
-	if err != nil {
-		return nil, err
-	}
-	return claims.User, nil
+	return ErrInvalidated
 }
 
 func (j *Jwt) getUserClaims(token string) (*userClaims, error) {
@@ -98,7 +103,7 @@ func (j *Jwt) getUserClaims(token string) (*userClaims, error) {
 	return claims, nil
 }
 
-func (j *Jwt) InvalidateUser(ctx context.Context, token string) error {
+func (j *Jwt) InvalidateToken(ctx context.Context, token string) error {
 	claims, err := j.getUserClaims(token)
 	if err != nil {
 		return err
@@ -115,6 +120,44 @@ func (j *Jwt) InvalidateUser(ctx context.Context, token string) error {
 		Build()
 	res := j.redis.Do(ctx, cmd)
 	return res.Error()
+}
+
+type Role string
+
+type genericClaims struct {
+	jwt.StandardClaims
+	Role Role `json:"role"`
+}
+
+func (j *Jwt) Generic(role Role, expires time.Duration) (string, error) {
+	exp := time.Now().Add(expires)
+	claims := genericClaims{
+		Role: role,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: exp.Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenStr, err := token.SignedString([]byte(j.secret))
+	if err != nil {
+		return "", err
+	}
+	return tokenStr, nil
+}
+
+func (j *Jwt) ValidateGeneric(ctx context.Context, token string) (Role, error) {
+	if err := j.isInvalidated(ctx, token); err != nil {
+		return "", err
+	}
+	claims := &genericClaims{}
+	_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+		return []byte(j.secret), nil
+	})
+	if err != nil {
+		return "", err
+	}
+	return claims.Role, nil
 }
 
 func (j *Jwt) invalidatedKey(hash string) string {

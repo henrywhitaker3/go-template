@@ -3,18 +3,15 @@ package users
 import (
 	"net/http"
 
-	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/labstack/echo/v4"
 )
 
-type MeHandler struct {
-	app *app.App
-}
+type MeHandler struct{}
 
-func NewMe(app *app.App) *MeHandler {
-	return &MeHandler{app: app}
+func NewMe() *MeHandler {
+	return &MeHandler{}
 }
 
 func (m *MeHandler) Handler() echo.HandlerFunc {

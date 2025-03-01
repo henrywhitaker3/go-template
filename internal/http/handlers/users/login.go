@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/henrywhitaker3/go-template/internal/app"
+	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
+	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/labstack/echo/v4"
 )
 
@@ -32,11 +34,15 @@ type LoginResponse struct {
 }
 
 type LoginHandler struct {
-	app *app.App
+	users *users.Users
+	jwt   *jwt.Jwt
 }
 
-func NewLogin(app *app.App) *LoginHandler {
-	return &LoginHandler{app: app}
+func NewLogin(b *boiler.Boiler) *LoginHandler {
+	return &LoginHandler{
+		users: boiler.MustResolve[*users.Users](b),
+		jwt:   boiler.MustResolve[*jwt.Jwt](b),
+	}
 }
 
 func (l *LoginHandler) Handler() echo.HandlerFunc {
@@ -46,13 +52,13 @@ func (l *LoginHandler) Handler() echo.HandlerFunc {
 			return common.ErrBadRequest
 		}
 
-		user, err := l.app.Users.Login(c.Request().Context(), req.Email, req.Password)
+		user, err := l.users.Login(c.Request().Context(), req.Email, req.Password)
 		if err != nil {
 			metrics.Logins.WithLabelValues("false").Inc()
 			return common.ErrUnauth
 		}
 
-		token, err := l.app.Jwt.NewForUser(user, time.Hour)
+		token, err := l.jwt.NewForUser(user, time.Hour)
 		if err != nil {
 			return common.Stack(err)
 		}
