@@ -27,8 +27,8 @@ require (
 	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/extra/redisotel/v9 v9.7.1
 	github.com/redis/go-redis/v9 v9.7.1
-	github.com/redis/rueidis v1.0.54
-	github.com/redis/rueidis/rueidisotel v1.0.54
+	github.com/redis/rueidis v1.0.55
+	github.com/redis/rueidis/rueidisotel v1.0.55
 	github.com/sethvargo/go-envconfig v1.1.1
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
@@ -139,7 +139,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
