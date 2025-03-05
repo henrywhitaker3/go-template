@@ -11,8 +11,10 @@ import (
 
 	"github.com/docker/go-connections/nat"
 	"github.com/henrywhitaker3/boiler"
+	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
+	"github.com/henrywhitaker3/go-template/internal/queue"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -105,10 +107,10 @@ func minio(t *testing.T, conf *config.Storage, ctx context.Context) {
 }
 
 func RunQueues(t *testing.T, b *boiler.Boiler, ctx context.Context) {
-	// worker, err := app.Worker(ctx, []queue.Queue{queue.DefaultQueue})
-	// require.Nil(t, err)
-	// go worker.Consume()
-	// time.Sleep(time.Millisecond * 500)
+	def, err := boiler.ResolveNamed[*queue.Worker](b, app.DefaultQueue)
+	require.Nil(t, err)
+	go def.Consume()
+	time.Sleep(time.Millisecond * 500)
 }
 
 func Must[T any](t *testing.T, f func() (T, error)) T {

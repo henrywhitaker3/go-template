@@ -31,10 +31,11 @@ func New(b *boiler.Boiler) *cobra.Command {
 			go metricsServer.Start(cmd.Context())
 			defer metricsServer.Stop(context.Background())
 
-			consumer, err := app.Worker(b, queue.Queue(args[0]))
+			consumer, err := boiler.ResolveNamed[*queue.Worker](b, fmt.Sprintf("queue:%s", args[0]))
 			if err != nil {
-				return fmt.Errorf("failed to instantiate queue consumer: %w", err)
+				return err
 			}
+
 			go func() {
 				<-cmd.Context().Done()
 				consumer.Shutdown(context.Background())

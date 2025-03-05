@@ -29,17 +29,34 @@ func RegisterServe(b *boiler.Boiler) {
 }
 
 func RegisterBase(b *boiler.Boiler) {
+	conf := boiler.MustResolve[*config.Config](b)
+
 	boiler.MustRegister(b, RegisterProbes)
-	boiler.MustRegister(b, RegisterMetrics)
-	boiler.MustRegister(b, RegisterDB)
-	boiler.MustRegister(b, RegisterQueries)
-	boiler.MustRegister(b, RegisterRedis)
-	boiler.MustRegister(b, RegisterJWT)
-	boiler.MustRegister(b, RegisterEncryption)
-	boiler.MustRegister(b, RegisterCache)
-	boiler.MustRegister(b, RegisterQueue)
-	boiler.MustRegister(b, RegisterStorage)
-	boiler.MustRegister(b, RegisterUsers)
+	if *conf.Telemetry.Metrics.Enabled {
+		boiler.MustRegister(b, RegisterMetrics)
+	}
+	if *conf.Database.Enabled {
+		boiler.MustRegister(b, RegisterDB)
+		boiler.MustRegister(b, RegisterQueries)
+	}
+	if *conf.Redis.Enabled {
+		boiler.MustRegister(b, RegisterRedis)
+		boiler.MustRegister(b, RegisterCache)
+	}
+	if *conf.Jwt.Enabled {
+		boiler.MustRegister(b, RegisterJWT)
+	}
+	if *conf.Encryption.Enabled {
+		boiler.MustRegister(b, RegisterEncryption)
+	}
+	if *conf.Storage.Enabled {
+		boiler.MustRegister(b, RegisterStorage)
+	}
+	boiler.MustRegisterDeferred(b, RegisterUsers)
+	if *conf.Queue.Enabled {
+		boiler.MustRegister(b, RegisterQueue)
+		boiler.MustRegisterNamed(b, DefaultQueue, RegisterDefaultQueueWorker)
+	}
 }
 
 func RegisterDB(b *boiler.Boiler) (*sql.DB, error) {
@@ -170,9 +187,12 @@ func RegisterStorage(b *boiler.Boiler) (objstore.Bucket, error) {
 	return storage.New(conf.Storage)
 }
 
-func Worker(
+const (
+	DefaultQueue = "queue:default"
+)
+
+func RegisterDefaultQueueWorker(
 	b *boiler.Boiler,
-	queues ...queue.Queue,
 ) (*queue.Worker, error) {
 	conf, err := boiler.Resolve[*config.Config](b)
 	if err != nil {
@@ -185,18 +205,6 @@ func Worker(
 			DB:          conf.Queue.DB,
 			OtelEnabled: *conf.Telemetry.Tracing.Enabled,
 		},
-		Queues: queues,
+		Queues: []queue.Queue{queue.DefaultQueue},
 	})
 }
-
-// func (a *App) Worker(ctx context.Context, queues []queue.Queue) (*queue.Worker, error) {
-// 	return queue.NewWorker(ctx, queue.ServerOpts{
-// 		Redis: queue.RedisOpts{
-// 			Addr:        a.Config.Redis.Addr,
-// 			Password:    a.Config.Redis.Password,
-// 			DB:          a.Config.Queue.DB,
-// 			OtelEnabled: *a.Config.Telemetry.Tracing.Enabled,
-// 		},
-// 		Queues: queues,
-// 	})
-// }
