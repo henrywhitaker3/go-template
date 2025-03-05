@@ -55,8 +55,12 @@ func RegisterBase(b *boiler.Boiler) {
 	boiler.MustRegisterDeferred(b, RegisterUsers)
 	if *conf.Queue.Enabled {
 		boiler.MustRegister(b, RegisterQueue)
-		boiler.MustRegisterNamed(b, DefaultQueue, RegisterDefaultQueueWorker)
 	}
+}
+
+func RegisterConsumers(b *boiler.Boiler) {
+	RegisterBase(b)
+	boiler.MustRegisterNamedDefered(b, DefaultQueue, RegisterDefaultQueueWorker)
 }
 
 func RegisterDB(b *boiler.Boiler) (*sql.DB, error) {

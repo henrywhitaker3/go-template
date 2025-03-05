@@ -18,7 +18,7 @@ func New(b *boiler.Boiler) *cobra.Command {
 		Short:   "Run a queue consumer",
 		GroupID: "app",
 		PreRun: func(*cobra.Command, []string) {
-			app.RegisterBase(b)
+			app.RegisterConsumers(b)
 			b.MustBootstrap()
 		},
 		Args: cobra.ExactArgs(1),
