@@ -1,6 +1,7 @@
 package uuid
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -29,4 +30,31 @@ func TestItMakesV7satTime(t *testing.T) {
 	}
 
 	require.NotEqual(t, one, two)
+}
+
+func FuzzNoCollisions(f *testing.F) {
+	generated := map[UUID]struct{}{}
+
+	f.Fuzz(func(t *testing.T, _ string) {
+		id := Must(OrderedAt(time.Now()))
+		if _, ok := generated[id]; ok {
+			t.Fail()
+		}
+		generated[id] = struct{}{}
+	})
+}
+
+func TestItOrderV7AtCorrectly(t *testing.T) {
+	first := time.Now().Add(-time.Minute)
+	last := time.Now()
+
+	firstId := Must(OrderedAt(first))
+	lastId := Must(OrderedAt(last))
+
+	ids := []string{lastId.String(), firstId.String()}
+
+	slices.Sort(ids)
+
+	require.Equal(t, firstId.String(), ids[0])
+	require.Equal(t, lastId.String(), ids[1])
 }

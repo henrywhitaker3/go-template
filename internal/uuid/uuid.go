@@ -89,7 +89,7 @@ func getV7Time(t time.Time) (milli, seq int64) {
 	// Sequence number is between 0 and 3906 (nanoPerMilli>>8)
 	seq = (nano - milli*nanoPerMilli) >> 8
 	now := milli<<12 + seq
-	if now <= lastV7time {
+	if now == lastV7time {
 		now = lastV7time + 1
 		milli = now >> 12
 		seq = now & 0xfff
