@@ -29,7 +29,7 @@ require (
 	github.com/redis/go-redis/v9 v9.7.3
 	github.com/redis/rueidis v1.0.57
 	github.com/redis/rueidis/rueidisotel v1.0.57
-	github.com/sethvargo/go-envconfig v1.1.1
+	github.com/sethvargo/go-envconfig v1.2.0
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.35.0
