@@ -19,7 +19,7 @@ require (
 	github.com/henrywhitaker3/ctxgen v1.0.1
 	github.com/henrywhitaker3/go-cache v1.1.0
 	github.com/hibiken/asynq v0.25.1
-	github.com/hibiken/asynq/x v0.0.0-20241211061937-489e21920b92
+	github.com/hibiken/asynq/x v0.0.0-20250401060612-c327bc40a28e
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/labstack/echo-contrib v0.17.2
 	github.com/labstack/echo/v4 v4.13.3
