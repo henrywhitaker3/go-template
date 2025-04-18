@@ -4,14 +4,42 @@ on:
   pull_request:
 
 jobs:
+  cache:
+    runs-on: ubuntu-latest
+    steps:
+      - id: go-cache-paths
+        run: |
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Go build cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-build }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go mod download
+      - run: go build main.go
+
   unit:
     runs-on: ubuntu-latest
+    needs: [cache]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
-
+          go-version-file: go.mod
+      - id: go-cache-paths
+        run: |
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-build }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
       - run: go mod download
       - run: go test ./...
 
