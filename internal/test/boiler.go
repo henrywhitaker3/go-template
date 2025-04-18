@@ -16,6 +16,7 @@ import (
 	pg "github.com/henrywhitaker3/go-template/internal/postgres"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/log"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.uber.org/zap"
@@ -50,7 +51,7 @@ func newBoiler(t *testing.T) *boiler.Boiler {
 	pgCont, err := postgres.Run(
 		ctx,
 		"postgres:17",
-		testcontainers.WithLogger(testcontainers.TestLogger(t)),
+		testcontainers.WithLogger(log.TestLogger(t)),
 		postgres.WithDatabase("orderly"),
 		postgres.WithUsername("orderly"),
 		postgres.WithPassword("password"),
@@ -81,7 +82,7 @@ func newBoiler(t *testing.T) *boiler.Boiler {
 				},
 			},
 			Started: true,
-			Logger:  testcontainers.TestLogger(t),
+			Logger:  log.TestLogger(t),
 		},
 	)
 	require.Nil(t, err)

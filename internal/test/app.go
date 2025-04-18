@@ -18,6 +18,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/log"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
@@ -74,7 +75,7 @@ func minio(t *testing.T, conf *config.Storage, ctx context.Context) {
 				},
 			},
 			Started: true,
-			Logger:  testcontainers.TestLogger(t),
+			Logger:  log.TestLogger(t),
 		},
 	)
 	require.Nil(t, err)
