@@ -18,7 +18,7 @@ func New(b *boiler.Boiler) *cobra.Command {
 		Use:     "migrate",
 		Short:   "Run database migrations",
 		GroupID: "app",
-		PreRun: func(cmd *cobra.Command, args []string) {
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			app.RegisterBase(b)
 			b.MustBootstrap()
 		},
