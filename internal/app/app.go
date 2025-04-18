@@ -38,6 +38,7 @@ func RegisterBase(b *boiler.Boiler) {
 	if *conf.Database.Enabled {
 		boiler.MustRegister(b, RegisterDB)
 		boiler.MustRegister(b, RegisterQueries)
+		boiler.MustRegister(b, RegisterMigrator)
 	}
 	if *conf.Redis.Enabled {
 		boiler.MustRegister(b, RegisterRedis)
@@ -76,6 +77,15 @@ func RegisterDB(b *boiler.Boiler) (*sql.DB, error) {
 		return db.Close()
 	})
 	return db, nil
+}
+
+func RegisterMigrator(b *boiler.Boiler) (*postgres.Migrator, error) {
+	db, err := boiler.Resolve[*sql.DB](b)
+	if err != nil {
+		return nil, err
+	}
+
+	return postgres.NewMigrator(db)
 }
 
 func RegisterRedis(b *boiler.Boiler) (rueidis.Client, error) {

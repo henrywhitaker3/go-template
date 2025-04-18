@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 	"testing"
@@ -117,9 +116,7 @@ func newBoiler(t *testing.T) *boiler.Boiler {
 	require.Nil(t, b.Bootstrap())
 	t.Log("finished bootstrap")
 
-	db, err := boiler.Resolve[*sql.DB](b)
-	require.Nil(t, err)
-	mig, err := pg.NewMigrator(db)
+	mig := boiler.MustResolve[*pg.Migrator](b)
 	require.Nil(t, err)
 	t.Log("running migrations")
 	require.Nil(t, mig.Up())
