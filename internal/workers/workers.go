@@ -130,8 +130,8 @@ func (r *Runner) Register(w Worker) error {
 }
 
 func (r *Runner) Run() {
-	go r.locker.leader.Run(r.ctx)
-	<-r.locker.leader.Initialised()
+	go r.locker.Run(r.ctx)
+	<-r.locker.Initialised()
 	r.sched.Start()
 }
 

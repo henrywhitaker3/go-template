@@ -37,6 +37,14 @@ func NewLocker(opts LockerOpts) (*Locker, error) {
 	}, nil
 }
 
+func (l *Locker) Run(ctx context.Context) {
+	l.leader.Run(ctx)
+}
+
+func (l *Locker) Initialised() <-chan struct{} {
+	return l.leader.Initialised()
+}
+
 type fakeLock struct {
 	call func()
 }
