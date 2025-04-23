@@ -44,7 +44,7 @@ func TestItRunsWorkers(t *testing.T) {
 	redis, err := boiler.Resolve[rueidis.Client](b)
 	require.Nil(t, err)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
 	worker := &testWorker{
@@ -58,7 +58,6 @@ func TestItRunsWorkers(t *testing.T) {
 	require.Nil(t, runner.Register(worker))
 	runner.Run()
 	defer runner.Stop()
-
 	time.Sleep(time.Millisecond * 500)
 
 	require.Equal(t, 1, worker.Executions())

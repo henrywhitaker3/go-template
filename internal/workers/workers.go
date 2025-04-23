@@ -63,14 +63,16 @@ type Worker interface {
 }
 
 type Runner struct {
-	sched gocron.Scheduler
-	ctx   context.Context
+	sched  gocron.Scheduler
+	locker *Locker
+	ctx    context.Context
 }
 
 func NewRunner(ctx context.Context, redis rueidis.Client) (*Runner, error) {
 	locker, err := NewLocker(LockerOpts{
 		Redis:  redis,
-		Prefix: "workers",
+		Logger: logger.Logger(ctx),
+		Topic:  "workers",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialise locker: %w", err)
@@ -79,10 +81,14 @@ func NewRunner(ctx context.Context, redis rueidis.Client) (*Runner, error) {
 	sched, err := gocron.NewScheduler(
 		gocron.WithDistributedLocker(locker),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("created scheduler: %w", err)
+	}
 
 	return &Runner{
-		sched: sched,
-		ctx:   ctx,
+		sched:  sched,
+		locker: locker,
+		ctx:    ctx,
 	}, nil
 }
 
@@ -124,6 +130,8 @@ func (r *Runner) Register(w Worker) error {
 }
 
 func (r *Runner) Run() {
+	go r.locker.leader.Run(r.ctx)
+	<-r.locker.leader.Initialised()
 	r.sched.Start()
 }
 
