@@ -11,8 +11,9 @@ import (
 )
 
 type LockerOpts struct {
-	Redis rueidis.Client
-	Topic string
+	Redis  rueidis.Client
+	Logger *slog.Logger
+	Topic  string
 }
 
 type Locker struct {
@@ -21,10 +22,13 @@ type Locker struct {
 }
 
 func NewLocker(opts LockerOpts) (*Locker, error) {
+	if opts.Logger == nil {
+		opts.Logger = slog.Default()
+	}
 	leader, err := rueidisleader.New(&rueidisleader.LeaderOpts{
 		Client: opts.Redis,
 		Topic:  opts.Topic,
-		Logger: slog.Default(),
+		Logger: opts.Logger,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("instantiate leader election: %w", err)
@@ -32,7 +36,7 @@ func NewLocker(opts LockerOpts) (*Locker, error) {
 
 	return &Locker{
 		leader: leader,
-		logger: slog.Default(),
+		logger: opts.Logger,
 	}, nil
 }
 
