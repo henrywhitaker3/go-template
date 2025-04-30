@@ -3,6 +3,7 @@ package queue
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"runtime"
 	"time"
 
@@ -63,7 +64,7 @@ func (r RedisOpts) Client() redis.UniversalClient {
 func NewWorker(ctx context.Context, opts ServerOpts) (*Worker, error) {
 	queues := map[string]int{}
 	for _, queue := range opts.Queues {
-		logger.Logger(ctx).Debugw("consuming from queue", "queue", queue)
+		logger.Logger(ctx).Debug("consuming from queue", "queue", queue)
 		queues[string(queue)] = 9
 	}
 	srv := asynq.NewServerFromRedisClient(
@@ -71,8 +72,10 @@ func NewWorker(ctx context.Context, opts ServerOpts) (*Worker, error) {
 		asynq.Config{
 			Concurrency: runtime.NumCPU(),
 			BaseContext: func() context.Context { return ctx },
-			Logger:      logger.Logger(ctx),
-			Queues:      queues,
+			Logger: &asynqLogger{
+				log: slog.Default(),
+			},
+			Queues: queues,
 		},
 	)
 	if err := srv.Ping(); err != nil {

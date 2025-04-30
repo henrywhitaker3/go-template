@@ -3,6 +3,7 @@ package seed
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/logger"
@@ -34,7 +35,7 @@ func (s *Seeder) Seed(ctx context.Context, name string, count int) error {
 
 	logger.Info("seeding")
 	for i := range count {
-		logger.Debugf("running iteration %d", i+1)
+		logger.Debug(fmt.Sprintf("running iteration %d", i+1))
 		if err := f(ctx, s.b); err != nil {
 			return err
 		}

@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"testing"
 	"time"
@@ -18,8 +19,6 @@ import (
 	"github.com/testcontainers/testcontainers-go/log"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 var (
@@ -40,13 +39,22 @@ func Boiler(t *testing.T, recreate ...bool) *boiler.Boiler {
 	return boil
 }
 
+type testingWriter struct {
+	t *testing.T
+}
+
+func (t testingWriter) Write(in []byte) (int, error) {
+	t.t.Log(string(in))
+	return len(in), nil
+}
+
 func newBoiler(t *testing.T) *boiler.Boiler {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
 
 	b := boiler.New(ctx)
 
 	t.Log("spinning up postgres container")
-	logger.Wrap(ctx, zap.NewAtomicLevelAt(zapcore.DebugLevel))
+	logger.Setup(slog.LevelDebug, testingWriter{t: t})
 	pgCont, err := postgres.Run(
 		ctx,
 		"postgres:17",

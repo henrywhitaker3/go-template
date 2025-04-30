@@ -8,7 +8,6 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
 	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
 )
 
 func Logger() echo.MiddlewareFunc {
@@ -31,7 +30,7 @@ func Logger() echo.MiddlewareFunc {
 					"latency_human", dur.String(),
 					"bytes_in", bytesIn(c),
 					"bytes_out", bytesOut(c),
-				).WithOptions(zap.WithCaller(false))
+				)
 			if id := common.RequestID(c); id != "" {
 				logger = logger.With("request_id", id)
 			}

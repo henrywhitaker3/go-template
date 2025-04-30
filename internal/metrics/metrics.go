@@ -110,7 +110,7 @@ func New(port int) *Metrics {
 }
 
 func (m *Metrics) Start(ctx context.Context) error {
-	logger.Logger(ctx).Infow("starting metrics server", "port", m.port)
+	logger.Logger(ctx).Info("starting metrics server", "port", m.port)
 	if err := m.e.Start(fmt.Sprintf(":%d", m.port)); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			return err

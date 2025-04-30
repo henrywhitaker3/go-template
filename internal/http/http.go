@@ -79,7 +79,7 @@ func (h *Http) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	logger.Logger(ctx).Infow("starting http server", "port", conf.Http.Port)
+	logger.Logger(ctx).Info("starting http server", "port", conf.Http.Port)
 	if err := h.e.Start(fmt.Sprintf(":%d", conf.Http.Port)); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			return err
@@ -183,7 +183,7 @@ func (h *Http) handleError(err error, c echo.Context) {
 			}
 		}
 
-		logger.Logger(c.Request().Context()).Errorw("unhandled error", "error", err)
+		logger.Logger(c.Request().Context()).Error("unhandled error", "error", err)
 		if hub := sentryecho.GetHubFromContext(c); hub != nil {
 			hub.CaptureException(err)
 		}

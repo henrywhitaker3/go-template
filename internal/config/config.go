@@ -4,28 +4,28 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/grafana/pyroscope-go"
 	"github.com/sethvargo/go-envconfig"
-	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
 type LogLevel string
 
-func (l LogLevel) Level() zap.AtomicLevel {
+func (l LogLevel) Level() slog.Level {
 	switch l {
 	case "debug":
-		return zap.NewAtomicLevelAt(zap.DebugLevel)
+		return slog.LevelDebug
 	case "error":
-		return zap.NewAtomicLevelAt(zap.ErrorLevel)
+		return slog.LevelError
 	case "info":
 		fallthrough
 	default:
-		return zap.NewAtomicLevelAt(zap.InfoLevel)
+		return slog.LevelInfo
 	}
 }
 

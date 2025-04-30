@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,7 +18,6 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
-	"go.uber.org/zap"
 )
 
 var (
@@ -42,7 +42,7 @@ func main() {
 	b := boiler.New(ctx)
 	defer b.Shutdown()
 
-	// Secret generation utlities that dont need config/app
+	// Secret generation utilities that don't need config/app
 	if len(os.Args) > 1 && os.Args[1] == "secrets" {
 		os.Args = append(os.Args[:1], os.Args[2:]...)
 		if err := secrets.New().Execute(); err != nil {
@@ -54,16 +54,13 @@ func main() {
 	boiler.MustRegister[*config.Config](b, func(*boiler.Boiler) (*config.Config, error) {
 		return config.Load(getConfigPath())
 	})
-	boiler.MustRegister[*zap.SugaredLogger](b, func(b *boiler.Boiler) (*zap.SugaredLogger, error) {
+	boiler.MustRegister[*slog.Logger](b, func(b *boiler.Boiler) (*slog.Logger, error) {
 		conf, err := boiler.Resolve[*config.Config](b)
 		if err != nil {
 			return nil, err
 		}
-		log := logger.NewLogger(conf.LogLevel.Level())
-		b.RegisterShutdown(func(*boiler.Boiler) error {
-			return log.Sync()
-		})
-		return log, nil
+		logger.Setup(conf.LogLevel.Level())
+		return slog.Default(), nil
 	})
 
 	b.RegisterSetup(func(b *boiler.Boiler) error {
@@ -72,9 +69,7 @@ func main() {
 			return nil
 		}
 
-		boiler.MustResolve[*zap.SugaredLogger](
-			b,
-		).Infow("tracing enabled", "rate", conf.Telemetry.Tracing.SampleRate)
+		slog.Info("tracing enabled", "rate", conf.Telemetry.Tracing.SampleRate)
 		tracer, err := tracing.InitTracer(conf, version)
 		if err != nil {
 			return fmt.Errorf("setup tracer: %w", err)
@@ -90,7 +85,7 @@ func main() {
 			return nil
 		}
 
-		boiler.MustResolve[*zap.SugaredLogger](b).Info("sentry enabled")
+		slog.Info("sentry enabled")
 
 		if err := sentry.Init(sentry.ClientOptions{
 			Dsn:           conf.Telemetry.Sentry.Dsn,
@@ -114,9 +109,7 @@ func main() {
 			return nil
 		}
 
-		boiler.MustResolve[*zap.SugaredLogger](
-			b,
-		).Infow("profiling enabled", "service_name", conf.Telemetry.Profiling.ServiceName)
+		slog.Info("profiling enabled", "service_name", conf.Telemetry.Profiling.ServiceName)
 
 		host, err := os.Hostname()
 		if err != nil {

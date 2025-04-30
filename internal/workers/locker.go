@@ -3,29 +3,28 @@ package workers
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/henrywhitaker3/rueidisleader"
 	"github.com/redis/rueidis"
-	"go.uber.org/zap"
 )
 
 type LockerOpts struct {
-	Redis  rueidis.Client
-	Logger *zap.SugaredLogger
-	Topic  string
+	Redis rueidis.Client
+	Topic string
 }
 
 type Locker struct {
 	leader *rueidisleader.Leader
-	logger *zap.SugaredLogger
+	logger *slog.Logger
 }
 
 func NewLocker(opts LockerOpts) (*Locker, error) {
 	leader, err := rueidisleader.New(&rueidisleader.LeaderOpts{
 		Client: opts.Redis,
 		Topic:  opts.Topic,
-		Logger: rueidisleader.ZapLogger(opts.Logger),
+		Logger: slog.Default(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("instantiate leader election: %w", err)
@@ -33,7 +32,7 @@ func NewLocker(opts LockerOpts) (*Locker, error) {
 
 	return &Locker{
 		leader: leader,
-		logger: opts.Logger,
+		logger: slog.Default(),
 	}, nil
 }
 

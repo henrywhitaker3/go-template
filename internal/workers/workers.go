@@ -70,9 +70,8 @@ type Runner struct {
 
 func NewRunner(ctx context.Context, redis rueidis.Client) (*Runner, error) {
 	locker, err := NewLocker(LockerOpts{
-		Redis:  redis,
-		Logger: logger.Logger(ctx),
-		Topic:  "workers",
+		Redis: redis,
+		Topic: "workers",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialise locker: %w", err)
@@ -95,7 +94,7 @@ func NewRunner(ctx context.Context, redis rueidis.Client) (*Runner, error) {
 func (r *Runner) Register(w Worker) error {
 	logger := logger.Logger(r.ctx)
 
-	logger.Infow("registering worker", "name", w.Name())
+	logger.Info("registering worker", "name", w.Name())
 
 	var at gocron.JobDefinition
 	switch w.Interval().Kind() {
@@ -115,7 +114,7 @@ func (r *Runner) Register(w Worker) error {
 				defer cancel()
 				metrics.WorkerExecutions.WithLabelValues(w.Name()).Inc()
 				if err := w.Run(ctx); err != nil {
-					logger.Errorw("worker run failed", "name", w.Name(), "error", err)
+					logger.Error("worker run failed", "name", w.Name(), "error", err)
 					metrics.WorkerExecutionErrors.WithLabelValues(w.Name()).Inc()
 				}
 			},

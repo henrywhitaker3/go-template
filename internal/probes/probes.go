@@ -41,7 +41,7 @@ type Probes struct {
 	healthy bool
 }
 
-// Creates a new probes server and assignes the default `server` var
+// Creates a new probes server and assigns the default `server` var
 // to it. This way other packages can change the health status without being passed
 // a probes server
 func New(port int) *Probes {
@@ -88,7 +88,7 @@ func (p *Probes) Unready() {
 }
 
 func (p *Probes) Start(ctx context.Context) error {
-	logger.Logger(ctx).Infow("starting probes server", "port", p.port)
+	logger.Logger(ctx).Info("starting probes server", "port", p.port)
 	if err := p.e.Start(fmt.Sprintf(":%d", p.port)); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			return err
