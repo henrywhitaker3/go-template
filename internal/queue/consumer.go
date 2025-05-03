@@ -124,6 +124,7 @@ func (w *Worker) handler(ctx context.Context, task *asynq.Task) error {
 	metrics.QueueTasksProcessedDuration.With(labels).Observe(end.Seconds())
 	if err != nil {
 		metrics.QueueTasksProcessedErrors.With(labels).Inc()
+		logger.Logger(ctx).Error("task failed", "error", err)
 	}
 	return err
 }
