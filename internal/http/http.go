@@ -70,6 +70,7 @@ func New(b *boiler.Boiler) *Http {
 	h.Register(users.NewMe())
 	h.Register(users.NewMakeAdmin(b))
 	h.Register(users.NewRemoveAdmin(b))
+	h.Register(users.NewIsAdminHandler(b))
 
 	return h
 }
