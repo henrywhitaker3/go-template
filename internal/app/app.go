@@ -212,6 +212,10 @@ func RegisterDefaultQueueWorker(
 	if err != nil {
 		return nil, err
 	}
+	conc := 0
+	if conf.Queue.Concurrency != nil {
+		conc = *conf.Queue.Concurrency
+	}
 	return queue.NewWorker(b.Context(), queue.ServerOpts{
 		Redis: queue.RedisOpts{
 			Addr:        conf.Redis.Addr,
@@ -219,6 +223,7 @@ func RegisterDefaultQueueWorker(
 			DB:          conf.Queue.DB,
 			OtelEnabled: *conf.Telemetry.Tracing.Enabled,
 		},
-		Queues: []queue.Queue{queue.DefaultQueue},
+		Queues:      []queue.Queue{queue.DefaultQueue},
+		Concurrency: conc,
 	})
 }

@@ -38,6 +38,8 @@ type Worker struct {
 type ServerOpts struct {
 	Queues []Queue
 	Redis  RedisOpts
+	// The number of concurrent jobs the worker processes (default: num cpu)
+	Concurrency int
 }
 
 type RedisOpts struct {
@@ -67,10 +69,13 @@ func NewWorker(ctx context.Context, opts ServerOpts) (*Worker, error) {
 		logger.Logger(ctx).Debug("consuming from queue", "queue", queue)
 		queues[string(queue)] = 9
 	}
+	if opts.Concurrency == 0 {
+		opts.Concurrency = runtime.NumCPU()
+	}
 	srv := asynq.NewServerFromRedisClient(
 		opts.Redis.Client(),
 		asynq.Config{
-			Concurrency: runtime.NumCPU(),
+			Concurrency: opts.Concurrency,
 			BaseContext: func() context.Context { return ctx },
 			Logger: &asynqLogger{
 				log: slog.Default(),

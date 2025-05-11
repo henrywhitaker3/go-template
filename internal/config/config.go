@@ -173,8 +173,9 @@ type Encryption struct {
 }
 
 type Queue struct {
-	Enabled *bool `yaml:"enabled" env:"ENABLED, overwrite, default=true"`
-	DB      int   `yaml:"db"      env:"DB, overwrite, default=5"`
+	Enabled     *bool `yaml:"enabled"     env:"ENABLED, overwrite, default=true"`
+	DB          int   `yaml:"db"          env:"DB, overwrite, default=5"`
+	Concurrency *int  `yaml:"concurrency" env:"CONCURRENCY, overwrite"`
 }
 
 type Runner struct {
