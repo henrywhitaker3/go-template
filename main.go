@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/KimMachineGun/automemlimit/memlimit"
 	"github.com/getsentry/sentry-go"
 	"github.com/grafana/pyroscope-go"
 	"github.com/henrywhitaker3/boiler"
@@ -67,6 +68,18 @@ func main() {
 		_, err := maxprocs.Set(maxprocs.Logger(func(s string, i ...any) {
 			slog.Info(fmt.Sprintf(s, i...))
 		}))
+		return err
+	})
+	b.RegisterSetup(func(b *boiler.Boiler) error {
+		_, err := memlimit.SetGoMemLimitWithOpts(
+			memlimit.WithLogger(slog.Default()),
+		)
+		skip := []error{memlimit.ErrCgroupsNotSupported, memlimit.ErrNoCgroup, memlimit.ErrNoLimit}
+		for _, s := range skip {
+			if errors.Is(err, s) {
+				return nil
+			}
+		}
 		return err
 	})
 
