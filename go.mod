@@ -42,6 +42,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.35.0
 	go.opentelemetry.io/otel/sdk v1.35.0
 	go.opentelemetry.io/otel/trace v1.35.0
+	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.38.0
 	gopkg.in/yaml.v3 v3.0.1
 )

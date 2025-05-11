@@ -18,6 +18,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
+	"go.uber.org/automaxprocs/maxprocs"
 )
 
 var (
@@ -51,16 +52,22 @@ func main() {
 		os.Exit(0)
 	}
 
-	boiler.MustRegister[*config.Config](b, func(*boiler.Boiler) (*config.Config, error) {
+	boiler.MustRegister(b, func(*boiler.Boiler) (*config.Config, error) {
 		return config.Load(getConfigPath())
 	})
-	boiler.MustRegister[*slog.Logger](b, func(b *boiler.Boiler) (*slog.Logger, error) {
+	boiler.MustRegister(b, func(b *boiler.Boiler) (*slog.Logger, error) {
 		conf, err := boiler.Resolve[*config.Config](b)
 		if err != nil {
 			return nil, err
 		}
 		logger.Setup(conf.LogLevel.Level())
 		return slog.Default(), nil
+	})
+	b.RegisterSetup(func(b *boiler.Boiler) error {
+		_, err := maxprocs.Set(maxprocs.Logger(func(s string, i ...any) {
+			slog.Info(fmt.Sprintf(s, i...))
+		}))
+		return err
 	})
 
 	b.RegisterSetup(func(b *boiler.Boiler) error {
@@ -150,15 +157,4 @@ func getConfigPath() string {
 		}
 	}
 	return "go-template.yaml"
-}
-
-func noConfigHelp() {
-	help := `Usage:
-	api [command]
-
-Flags:
-	-c, --config	The path to the api config file (default: go-template.yaml)
-	`
-	fmt.Println(help)
-	os.Exit(3)
 }
