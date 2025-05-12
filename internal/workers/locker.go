@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/henrywhitaker3/rueidisleader"
@@ -18,6 +19,10 @@ type LockerOpts struct {
 
 type Locker struct {
 	leader *rueidisleader.Leader
+
+	locks map[string]bool
+	mu    *sync.Mutex
+
 	logger *slog.Logger
 }
 
@@ -36,6 +41,8 @@ func NewLocker(opts LockerOpts) (*Locker, error) {
 
 	return &Locker{
 		leader: leader,
+		locks:  map[string]bool{},
+		mu:     &sync.Mutex{},
 		logger: opts.Logger,
 	}, nil
 }
@@ -63,9 +70,15 @@ func (l *Locker) Lock(ctx context.Context, key string) (gocron.Lock, error) {
 	log := l.logger.With("key", key)
 	log.Debug("acquiring lock")
 	if l.leader.IsLeader() {
+		l.mu.Lock()
+		defer l.mu.Unlock()
+		l.locks[key] = true
 		return fakeLock{
 			call: func() {
 				log.Debug("releasing lock")
+				l.mu.Lock()
+				defer l.mu.Unlock()
+				delete(l.locks, key)
 			},
 		}, nil
 	}
