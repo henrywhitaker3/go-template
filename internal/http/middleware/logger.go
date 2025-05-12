@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
 	"github.com/labstack/echo/v4"
@@ -31,12 +30,6 @@ func Logger() echo.MiddlewareFunc {
 					"bytes_in", bytesIn(c),
 					"bytes_out", bytesOut(c),
 				)
-			if id := common.RequestID(c); id != "" {
-				logger = logger.With("request_id", id)
-			}
-			if trace := common.TraceID(ctx); trace != "" {
-				logger = logger.With("trace_id", trace)
-			}
 			if err != nil {
 				c.Error(err)
 				if c.Response().Status >= 500 {

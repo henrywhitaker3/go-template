@@ -5,6 +5,8 @@ import (
 	"io"
 	"log/slog"
 	"os"
+
+	"github.com/henrywhitaker3/go-template/internal/http/common"
 )
 
 func Setup(level slog.Level, outputs ...io.Writer) {
@@ -20,5 +22,12 @@ func Setup(level slog.Level, outputs ...io.Writer) {
 }
 
 func Logger(ctx context.Context) *slog.Logger {
-	return slog.Default()
+	log := slog.Default()
+	if trace := common.TraceID(ctx); trace != "" {
+		log = log.With("trace_id", trace)
+	}
+	if req := common.ContextID(ctx); req != "" {
+		log = log.With("request_id", req)
+	}
+	return log
 }
