@@ -72,6 +72,9 @@ func (l *Locker) Lock(ctx context.Context, key string) (gocron.Lock, error) {
 	if l.leader.IsLeader() {
 		l.mu.Lock()
 		defer l.mu.Unlock()
+		if _, ok := l.locks[key]; ok {
+			return fakeLock{}, fmt.Errorf("already locked")
+		}
 		l.locks[key] = true
 		return fakeLock{
 			call: func() {
