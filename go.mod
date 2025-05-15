@@ -7,8 +7,8 @@ require (
 	github.com/XSAM/otelsql v0.38.0
 	github.com/brianvoe/gofakeit/v7 v7.2.1
 	github.com/docker/go-connections v0.5.0
-	github.com/getsentry/sentry-go v0.32.0
-	github.com/getsentry/sentry-go/echo v0.32.0
+	github.com/getsentry/sentry-go v0.33.0
+	github.com/getsentry/sentry-go/echo v0.33.0
 	github.com/go-co-op/gocron/v2 v2.16.1
 	github.com/go-kit/log v0.2.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
