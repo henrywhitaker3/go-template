@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
 
-	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
@@ -110,7 +110,7 @@ func New(port int) *Metrics {
 }
 
 func (m *Metrics) Start(ctx context.Context) error {
-	logger.Logger(ctx).Info("starting metrics server", "port", m.port)
+	slog.Info("starting metrics server", "port", m.port)
 	if err := m.e.Start(fmt.Sprintf(":%d", m.port)); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			return err
@@ -120,7 +120,7 @@ func (m *Metrics) Start(ctx context.Context) error {
 }
 
 func (m *Metrics) Stop(ctx context.Context) error {
-	logger.Logger(ctx).Info("stopping metrics server")
+	slog.Info("stopping metrics server")
 	return m.e.Shutdown(ctx)
 }
 

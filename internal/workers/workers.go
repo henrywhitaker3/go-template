@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
-	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/redis/rueidis"
 )
@@ -92,9 +92,7 @@ func NewRunner(ctx context.Context, redis rueidis.Client) (*Runner, error) {
 }
 
 func (r *Runner) Register(w Worker) error {
-	logger := logger.Logger(r.ctx)
-
-	logger.Info("registering worker", "name", w.Name())
+	slog.Info("registering worker", "name", w.Name())
 
 	var at gocron.JobDefinition
 	switch w.Interval().Kind() {
@@ -114,7 +112,7 @@ func (r *Runner) Register(w Worker) error {
 				defer cancel()
 				metrics.WorkerExecutions.WithLabelValues(w.Name()).Inc()
 				if err := w.Run(ctx); err != nil {
-					logger.Error("worker run failed", "name", w.Name(), "error", err)
+					slog.Error("worker run failed", "name", w.Name(), "error", err)
 					metrics.WorkerExecutionErrors.WithLabelValues(w.Name()).Inc()
 				}
 			},

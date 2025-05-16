@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
 	"github.com/hibiken/asynq"
@@ -66,7 +65,7 @@ func (r RedisOpts) Client() redis.UniversalClient {
 func NewWorker(ctx context.Context, opts ServerOpts) (*Worker, error) {
 	queues := map[string]int{}
 	for _, queue := range opts.Queues {
-		logger.Logger(ctx).Debug("consuming from queue", "queue", queue)
+		slog.Debug("consuming from queue", "queue", queue)
 		queues[string(queue)] = 9
 	}
 	if opts.Concurrency == 0 {
@@ -129,7 +128,7 @@ func (w *Worker) handler(ctx context.Context, task *asynq.Task) error {
 	metrics.QueueTasksProcessedDuration.With(labels).Observe(end.Seconds())
 	if err != nil {
 		metrics.QueueTasksProcessedErrors.With(labels).Inc()
-		logger.Logger(ctx).Error("task failed", "error", err)
+		slog.Error("task failed", "error", err)
 	}
 	return err
 }

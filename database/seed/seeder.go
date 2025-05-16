@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/henrywhitaker3/boiler"
-	"github.com/henrywhitaker3/go-template/internal/logger"
 )
 
 var (
@@ -26,7 +26,7 @@ func New(b *boiler.Boiler) *Seeder {
 }
 
 func (s *Seeder) Seed(ctx context.Context, name string, count int) error {
-	logger := logger.Logger(ctx).With("seeder", name, "count", count)
+	logger := slog.With("seeder", name, "count", count)
 	f, ok := seeders[name]
 	if !ok {
 		logger.Error("seeder not found")
