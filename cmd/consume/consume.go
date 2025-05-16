@@ -7,7 +7,6 @@ import (
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
-	"github.com/henrywhitaker3/go-template/internal/probes"
 	"github.com/henrywhitaker3/go-template/internal/queue"
 	"github.com/spf13/cobra"
 )
@@ -40,16 +39,6 @@ func New(b *boiler.Boiler) *cobra.Command {
 				<-cmd.Context().Done()
 				consumer.Shutdown(context.Background())
 			}()
-
-			probes, err := boiler.Resolve[*probes.Probes](b)
-			if err != nil {
-				return err
-			}
-			go probes.Start(cmd.Context())
-			defer probes.Stop(context.Background())
-
-			probes.Ready()
-			probes.Healthy()
 
 			consumer.RegisterMetrics(metricsServer.Registry)
 

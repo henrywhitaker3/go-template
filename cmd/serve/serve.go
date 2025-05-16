@@ -7,7 +7,6 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/http"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
-	"github.com/henrywhitaker3/go-template/internal/probes"
 	"github.com/henrywhitaker3/go-template/internal/workers"
 	"github.com/spf13/cobra"
 )
@@ -30,21 +29,11 @@ func New(b *boiler.Boiler) *cobra.Command {
 			go metricsServer.Start(cmd.Context())
 			defer metricsServer.Stop(context.Background())
 
-			probes, err := boiler.Resolve[*probes.Probes](b)
-			if err != nil {
-				return err
-			}
-			go probes.Start(cmd.Context())
-			defer probes.Stop(context.Background())
-
 			runner, err := boiler.Resolve[*workers.Runner](b)
 			if err != nil {
 				return err
 			}
 			go runner.Run()
-
-			probes.Ready()
-			probes.Healthy()
 
 			http, err := boiler.Resolve[*http.Http](b)
 			if err != nil {
