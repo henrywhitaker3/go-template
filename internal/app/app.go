@@ -2,6 +2,10 @@ package app
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
 
 	"github.com/henrywhitaker3/boiler"
 	gocache "github.com/henrywhitaker3/go-cache"
@@ -12,12 +16,13 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/postgres"
-	"github.com/henrywhitaker3/go-template/internal/probes"
+	iprobes "github.com/henrywhitaker3/go-template/internal/probes"
 	"github.com/henrywhitaker3/go-template/internal/queue"
 	"github.com/henrywhitaker3/go-template/internal/redis"
 	"github.com/henrywhitaker3/go-template/internal/storage"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/go-template/internal/workers"
+	"github.com/henrywhitaker3/probes"
 	"github.com/redis/rueidis"
 	"github.com/thanos-io/objstore"
 )
@@ -32,6 +37,7 @@ func RegisterBase(b *boiler.Boiler) {
 	conf := boiler.MustResolve[*config.Config](b)
 
 	boiler.MustRegister(b, RegisterProbes)
+	boiler.MustRegister(b, RegisterProbesServer)
 	if *conf.Telemetry.Metrics.Enabled {
 		boiler.MustRegister(b, RegisterMetrics)
 	}
@@ -159,7 +165,46 @@ func RegisterProbes(b *boiler.Boiler) (*probes.Probes, error) {
 	if err != nil {
 		return nil, err
 	}
-	return probes.New(conf.Probes.Port), nil
+	p := iprobes.New(conf.Probes.Port)
+	iprobes.Probes = p
+	b.RegisterSetup(func(b *boiler.Boiler) error {
+		return p.Ready(iprobes.App)
+	})
+	b.RegisterShutdown(func(b *boiler.Boiler) error {
+		return p.NotReady(iprobes.App)
+	})
+	return p, nil
+}
+
+func RegisterProbesServer(b *boiler.Boiler) (*probes.Server, error) {
+	p, err := boiler.Resolve[*probes.Probes](b)
+	if err != nil {
+		return nil, err
+	}
+	conf, err := boiler.Resolve[*config.Config](b)
+	if err != nil {
+		return nil, err
+	}
+	srv := probes.NewServer(probes.ServerOpts{
+		Addr:   fmt.Sprintf(":%d", conf.Probes.Port),
+		Probes: p,
+	})
+	b.RegisterSetup(func(b *boiler.Boiler) error {
+		go func() {
+			slog.Info("starting probes server", "port", conf.Probes.Port)
+			if err := srv.Start(); err != nil {
+				if !errors.Is(err, http.ErrServerClosed) {
+					slog.Error("failed to start probes server", "error", err)
+				}
+			}
+		}()
+		return nil
+	})
+	b.RegisterShutdown(func(b *boiler.Boiler) error {
+		return srv.Shutdown(b.Context())
+	})
+
+	return srv, nil
 }
 
 func RegisterMetrics(b *boiler.Boiler) (*metrics.Metrics, error) {

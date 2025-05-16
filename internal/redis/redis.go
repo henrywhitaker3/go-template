@@ -56,11 +56,11 @@ func checkCanWrite(ctx context.Context, client rueidis.Client) {
 			cmd := client.B().Set().Key("redis:can-write").Value("true").Build()
 			if res := client.Do(ctx, cmd); res.Error() != nil {
 				logger.Logger(ctx).Error("could not write to redis", "error", res.Error())
-				probes.Unhealthy()
+				probes.Unhealthy(probes.Redis)
 				continue
 			}
 			// Set it back to healthy if it passes
-			probes.Healthy()
+			probes.Healthy(probes.Redis)
 		}
 	}
 }
