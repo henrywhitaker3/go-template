@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"log/slog"
 	"strconv"
 	"time"
 
-	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
 	"github.com/labstack/echo/v4"
 )
@@ -17,7 +17,7 @@ func Logger() echo.MiddlewareFunc {
 			ctx, span := tracing.NewSpan(c.Request().Context(), "LogRequest")
 			defer span.End()
 			dur := time.Since(start)
-			logger := logger.Logger(ctx).
+			logger := slog.
 				With(
 					"remote_ip", c.RealIP(),
 					"host", c.Request().Host,
@@ -36,7 +36,7 @@ func Logger() echo.MiddlewareFunc {
 					logger = logger.With("error", err.Error())
 				}
 			}
-			logger.Info("request")
+			logger.InfoContext(ctx, "request")
 			return nil
 		}
 	}

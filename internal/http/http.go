@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	sentryecho "github.com/getsentry/sentry-go/echo"
@@ -14,7 +15,6 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/http/handlers/users"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
-	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
@@ -80,7 +80,7 @@ func (h *Http) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	logger.Logger(ctx).Info("starting http server", "port", conf.Http.Port)
+	slog.Info("starting http server", "port", conf.Http.Port)
 	if err := h.e.Start(fmt.Sprintf(":%d", conf.Http.Port)); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			return err
@@ -90,7 +90,7 @@ func (h *Http) Start(ctx context.Context) error {
 }
 
 func (h *Http) Stop(ctx context.Context) error {
-	logger.Logger(ctx).Info("stopping http server")
+	slog.Info("stopping http server")
 	return h.e.Shutdown(ctx)
 }
 
@@ -184,7 +184,7 @@ func (h *Http) handleError(err error, c echo.Context) {
 			}
 		}
 
-		logger.Logger(c.Request().Context()).Error("unhandled error", "error", err)
+		slog.ErrorContext(c.Request().Context(), "unhandled error", "error", err)
 		if hub := sentryecho.GetHubFromContext(c); hub != nil {
 			hub.CaptureException(err)
 		}
