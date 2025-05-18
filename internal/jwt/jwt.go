@@ -151,7 +151,7 @@ func (j *Jwt) ValidateGeneric(ctx context.Context, token string) (Role, error) {
 		return "", err
 	}
 	claims := &genericClaims{}
-	_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
 		return []byte(j.secret), nil
 	})
 	if err != nil {
@@ -162,4 +162,22 @@ func (j *Jwt) ValidateGeneric(ctx context.Context, token string) (Role, error) {
 
 func (j *Jwt) invalidatedKey(hash string) string {
 	return fmt.Sprintf("tokens:invalidated:%s", hash)
+}
+
+func (j *Jwt) Expiry(ctx context.Context, token string) (time.Time, error) {
+	claims := jwt.StandardClaims{}
+	if err := j.isInvalidated(ctx, token); err != nil {
+		return time.Now(), err
+	}
+	_, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (any, error) {
+		return []byte(j.secret), nil
+	})
+	if err != nil {
+		return time.Now(), fmt.Errorf("could not parse claims: %w", err)
+	}
+
+	if claims.ExpiresAt == 0 {
+		return time.Now(), fmt.Errorf("no expiry set")
+	}
+	return time.Unix(claims.ExpiresAt, 0), nil
 }
