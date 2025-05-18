@@ -77,3 +77,21 @@ func TestItFailsWhenTokenInvalidated(t *testing.T) {
 	_, err = jwt.VerifyUser(ctx, token)
 	require.NotNil(t, err)
 }
+
+func TestItReturnsTheCorrectExpiryTime(t *testing.T) {
+	b := test.Boiler(t)
+
+	jwt, err := boiler.Resolve[*jwt.Jwt](b)
+	require.Nil(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+
+	now := time.Now()
+	token, err := jwt.Generic("bongo", time.Minute)
+	require.Nil(t, err)
+
+	expiry, err := jwt.Expiry(ctx, token)
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, now.Add(time.Minute), expiry)
+}
