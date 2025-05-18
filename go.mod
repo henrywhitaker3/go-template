@@ -23,7 +23,7 @@ require (
 	github.com/henrywhitaker3/rueidisleader v1.0.6
 	github.com/hibiken/asynq v0.25.1
 	github.com/hibiken/asynq/x v0.0.0-20250401060612-c327bc40a28e
-	github.com/jackc/pgx/v5 v5.7.4
+	github.com/jackc/pgx/v5 v5.7.5
 	github.com/labstack/echo-contrib v0.17.4
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/pkg/errors v0.9.1
