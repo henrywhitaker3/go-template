@@ -31,14 +31,19 @@ func NewPublisher(opts PublisherOpts) (*Publisher, error) {
 }
 
 // Push a task in the queue
-func (p *Publisher) Push(ctx context.Context, kind Task, payload any) error {
-	ctx, span := tracing.NewSpan(ctx, "PushToQueue", trace.WithAttributes(attribute.String("task", string(kind))), trace.WithSpanKind(trace.SpanKindProducer))
+func (p *Publisher) Push(ctx context.Context, kind Task, payload any, opts ...asynq.Option) error {
+	ctx, span := tracing.NewSpan(
+		ctx,
+		"PushToQueue",
+		trace.WithAttributes(attribute.String("task", string(kind))),
+		trace.WithSpanKind(trace.SpanKindProducer),
+	)
 	defer span.End()
 	by, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal task payload: %w", err)
 	}
-	task := asynq.NewTask(string(kind), by)
+	task := asynq.NewTask(string(kind), by, opts...)
 
 	queue := mapTaskToQueue(kind)
 
