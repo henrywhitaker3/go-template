@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.2
-	github.com/XSAM/otelsql v0.38.0
+	github.com/XSAM/otelsql v0.39.0
 	github.com/brianvoe/gofakeit/v7 v7.2.1
 	github.com/docker/go-connections v0.5.0
 	github.com/getsentry/sentry-go v0.33.0
