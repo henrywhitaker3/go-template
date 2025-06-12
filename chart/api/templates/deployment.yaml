@@ -46,7 +46,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          args: ["consume", "{{ .Values.queue }}", "--config", "/config/{{ .Values.config.name }}.yaml"]
+          args: ["serve", "--config", "/config/{{ .Values.config.name }}.yaml"]
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
