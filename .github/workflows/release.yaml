@@ -27,7 +27,7 @@ jobs:
         id: pr
         uses: peter-evans/create-pull-request@v7
         with:
-          branch: chart/${{ github.ref_name }}
+          branch: chart/${{ matrix.chart }}/${{ github.ref_name }}
           commit-message: "chore(chart): update ${{ matrix.chart }} version to ${{ github.ref_name }}"
           labels: automerge
       - name: Merge Pull Request
@@ -58,7 +58,7 @@ jobs:
           name: ${{ matrix.chart }}-helm
           repository: henrywhitaker3
           tag: "v${{ env.CHART_VERSION }}"
-          path: chart
+          path: chart/${{ matrix.chart }}
           registry: ghcr.io
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
