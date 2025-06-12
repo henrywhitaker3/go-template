@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   chart:
@@ -12,20 +12,23 @@ jobs:
       contents: write
       packages: write
       pull-requests: write
+    strategy:
+      matrix:
+        chart: [api, worker]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
       - uses: henrywhitaker3/ci-bump@main
         with:
-          cmd: ci-bump yaml --patch '.version' --set '.appVersion=${{ github.ref_name }}' chart/Chart.yaml
+          cmd: ci-bump yaml --patch '.version' --set '.appVersion=${{ github.ref_name }}' chart/${{ matrix.chart }}/Chart.yaml
 
       - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v7
         with:
           branch: chart/${{ github.ref_name }}
-          commit-message: "chore(chart): update version to ${{ github.ref_name }}"
+          commit-message: "chore(chart): update ${{ matrix.chart }} version to ${{ github.ref_name }}"
           labels: automerge
       - name: Merge Pull Request
         uses: "pascalgn/automerge-action@v0.16.4"
@@ -39,7 +42,7 @@ jobs:
           ref: main
       - name: Get chart version
         run: |
-          CHART_VERSION=$(cat chart/Chart.yaml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+$")
+          CHART_VERSION=$(cat chart/${{ matrix.chart }}/Chart.yaml | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+$")
           echo "CHART_VERSION=${CHART_VERSION}" >> $GITHUB_ENV
 
       - name: Login to ghcr.io
@@ -52,14 +55,14 @@ jobs:
       - name: Push chart
         uses: appany/helm-oci-chart-releaser@v0.4.2
         with:
-          name: go-template-helm
+          name: ${{ matrix.chart }}-helm
           repository: henrywhitaker3
           tag: "v${{ env.CHART_VERSION }}"
           path: chart
           registry: ghcr.io
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
-          update_dependencies: 'true'
+          update_dependencies: "true"
 
   build:
     runs-on: ubuntu-latest
