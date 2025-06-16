@@ -19,6 +19,8 @@ func New(b *boiler.Boiler) *cobra.Command {
 
 	cmd.AddCommand(up(b))
 	cmd.AddCommand(down(b))
+	cmd.AddCommand(fresh(b))
+	cmd.AddCommand(rollback(b))
 
 	return cmd
 }

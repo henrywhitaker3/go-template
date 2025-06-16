@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -46,6 +47,21 @@ func (m *Migrator) Up() error {
 
 func (m *Migrator) Down() error {
 	err := m.m.Down()
+	if err == nil || err.Error() == "no change" {
+		return nil
+	}
+	return err
+}
+
+func (m *Migrator) Fresh() error {
+	if err := m.m.Drop(); err != nil {
+		return fmt.Errorf("drop db: %w", err)
+	}
+	return m.m.Up()
+}
+
+func (m *Migrator) Rollback(steps int) error {
+	err := m.m.Steps(-steps)
 	if err == nil || err.Error() == "no change" {
 		return nil
 	}
