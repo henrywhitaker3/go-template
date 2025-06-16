@@ -25,7 +25,4 @@ func TestItLogsOutAUser(t *testing.T) {
 	rec := test.Post(t, b, "/auth/logout", nil, token)
 
 	require.Equal(t, http.StatusAccepted, rec.Code)
-
-	rec = test.Get(t, b, "/auth/me", token)
-	require.Equal(t, http.StatusUnauthorized, rec.Code)
 }

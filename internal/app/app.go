@@ -141,11 +141,7 @@ func RegisterJWT(b *boiler.Boiler) (*jwt.Jwt, error) {
 	if err != nil {
 		return nil, err
 	}
-	redis, err := boiler.Resolve[rueidis.Client](b)
-	if err != nil {
-		return nil, err
-	}
-	return jwt.New(conf.Jwt.Secret, redis), nil
+	return jwt.New(conf.Jwt.Secret), nil
 }
 
 func RegisterHTTP(b *boiler.Boiler) (*ohttp.Http, error) {
@@ -235,7 +231,21 @@ func RegisterRunner(b *boiler.Boiler) (*workers.Runner, error) {
 	if err != nil {
 		return nil, err
 	}
-	return workers.NewRunner(b.Context(), redis)
+	work, err := workers.NewRunner(b.Context(), redis)
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := boiler.Resolve[*queries.Queries](b)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := work.Register(users.NewExpirer(db)); err != nil {
+		return nil, err
+	}
+
+	return work, nil
 }
 
 func RegisterStorage(b *boiler.Boiler) (objstore.Bucket, error) {

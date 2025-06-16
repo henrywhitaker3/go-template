@@ -1,18 +1,25 @@
 package middleware
 
 import (
+	"errors"
+	"time"
+
 	"github.com/getsentry/sentry-go"
 	sentryecho "github.com/getsentry/sentry-go/echo"
+	pjwt "github.com/golang-jwt/jwt/v5"
 	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
+	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/labstack/echo/v4"
 )
 
 type UserOpts struct {
 	Jwt    *jwt.Jwt
 	Config *config.Config
+	Users  *users.Users
+	Domain string
 }
 
 func User(opts UserOpts) echo.MiddlewareFunc {
@@ -27,9 +34,29 @@ func User(opts UserOpts) echo.MiddlewareFunc {
 			}
 
 			user, err := opts.Jwt.VerifyUser(ctx, token)
-			if err == nil {
-				c.SetRequest(c.Request().WithContext(common.SetUser(c.Request().Context(), user)))
+			if err != nil {
+				if !errors.Is(err, pjwt.ErrTokenExpired) {
+					return next(c)
+				}
+
+				// Token expired, check for refresh token and do things with it
+				refresh := common.GetRefreshToken(c.Request())
+				if refresh == "" {
+					return next(c)
+				}
+
+				u, err := opts.Users.GetUserByRefreshToken(ctx, refresh)
+				if err != nil {
+					return next(c)
+				}
+				user = u
+				token, err := opts.Jwt.NewForUser(u, time.Minute*5)
+				if err != nil {
+					return next(c)
+				}
+				common.SetUserAuthCookie(c, opts.Domain, token)
 			}
+			c.SetRequest(c.Request().WithContext(common.SetUser(c.Request().Context(), user)))
 
 			if user != nil {
 				if *opts.Config.Telemetry.Sentry.Enabled {

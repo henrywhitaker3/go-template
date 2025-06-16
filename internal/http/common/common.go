@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/henrywhitaker3/ctxgen"
 	"github.com/henrywhitaker3/go-template/internal/users"
@@ -13,6 +14,9 @@ import (
 var (
 	ctxIdKey   = "request_id"
 	traceIdKey = "trace_id"
+
+	UserAuthCookie   = "user-auth"
+	UserRefreshToken = "user-refresh"
 )
 
 func RequestID(c echo.Context) string {
@@ -58,9 +62,43 @@ func GetToken(req *http.Request) string {
 		return header
 	}
 
-	cookie, err := req.Cookie("auth")
+	cookie, err := req.Cookie(UserAuthCookie)
 	if err == nil {
 		return cookie.Value
 	}
 	return ""
+}
+
+func GetRefreshToken(req *http.Request) string {
+	cookie, err := req.Cookie(UserRefreshToken)
+	if err != nil {
+		return ""
+	}
+	return cookie.Value
+}
+
+func SetUserAuthCookie(c echo.Context, domain string, token string) {
+	c.SetCookie(&http.Cookie{
+		Name:     UserAuthCookie,
+		Value:    token,
+		Path:     "/",
+		Domain:   domain,
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Expires:  time.Now().Add(time.Minute * 5),
+	})
+}
+
+func SetUserRefreshTokenCookie(c echo.Context, domain string, token string) {
+	c.SetCookie(&http.Cookie{
+		Name:     UserRefreshToken,
+		Value:    token,
+		Path:     "/",
+		Domain:   domain,
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Expires:  time.Now().Add(time.Hour * 24 * 30),
+	})
 }

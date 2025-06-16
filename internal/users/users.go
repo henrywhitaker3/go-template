@@ -2,7 +2,10 @@ package users
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
+	"fmt"
 	"time"
 
 	"github.com/henrywhitaker3/go-template/database/queries"
@@ -109,6 +112,53 @@ func (u *Users) Login(ctx context.Context, email, password string) (*User, error
 		return nil, err
 	}
 	return MapUser(user), nil
+}
+
+func (u *Users) CreateRefreshToken(
+	ctx context.Context,
+	user uuid.UUID,
+	validity time.Duration,
+) (string, error) {
+	id, err := uuid.Ordered()
+	if err != nil {
+		return "", fmt.Errorf("generate token id: %w", err)
+	}
+
+	token := make([]byte, 64)
+	if _, err := rand.Read(token); err != nil {
+		return "", fmt.Errorf("read random bytes: %w", err)
+	}
+	tokenS := hex.EncodeToString(token)
+
+	_, err = u.q.CreateRefreshToken(ctx, queries.CreateRefreshTokenParams{
+		ID:        id.UUID(),
+		UserID:    user.UUID(),
+		Hash:      tokenS,
+		ExpiresAt: time.Now().Add(validity).Unix(),
+	})
+	if err != nil {
+		return "", fmt.Errorf("store refresh token: %w", err)
+	}
+
+	return tokenS, nil
+}
+
+func (u *Users) GetUserByRefreshToken(ctx context.Context, token string) (*User, error) {
+	user, err := u.q.GetUserByRefreshToken(ctx, queries.GetUserByRefreshTokenParams{
+		Hash:      token,
+		ExpiresAt: time.Now().Unix(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("get user by refresh token: %w", err)
+	}
+	return MapUser(user), nil
+}
+
+func (u *Users) DeleteRefreshToken(ctx context.Context, token string) error {
+	if err := u.q.DeleteRefreshTokenByHash(ctx, token); err != nil {
+		return fmt.Errorf("delete refresh token by hash: %w", err)
+	}
+	return nil
 }
 
 func (u *Users) MakeAdmin(ctx context.Context, user *User) error {

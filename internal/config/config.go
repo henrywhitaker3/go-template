@@ -153,7 +153,8 @@ type Probes struct {
 }
 
 type Http struct {
-	Port int `yaml:"port" env:"PORT, overwrite, default=8765"`
+	Port           int      `yaml:"port"            env:"PORT, overwrite, default=8765"`
+	AllowedOrigins []string `yaml:"allowed_origins" env:"ALLOWED_ORIGINS, overwrite, default=http://localhost:3000"`
 }
 
 type Storage struct {
@@ -185,6 +186,7 @@ type Runner struct {
 type Config struct {
 	Name        string `yaml:"name"        env:"APP_NAME"`
 	Environment string `yaml:"environment" env:"APP_ENV, overwrite, default=dev"`
+	Url         string `yaml:"url"         env:"APP_URL, overwrite, default=http://127.0.0.1:8765"`
 
 	Storage Storage `yaml:"storage" env:", prefix=STORAGE_"`
 
