@@ -95,3 +95,11 @@ WHERE
             hash = $1
             AND expires_at > $2
     );
+
+-- name: RotateRefreshToken :exec
+UPDATE
+    refresh_tokens
+SET
+    hash = sqlc.arg(newHash)
+WHERE
+    hash = sqlc.arg(currentHash);

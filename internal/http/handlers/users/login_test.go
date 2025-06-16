@@ -3,7 +3,6 @@ package users_test
 import (
 	"context"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -30,7 +29,7 @@ func TestItLogsInAUser(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	cookies := parseCookies(t, rec.Header())
+	cookies := test.ParseCookies(t, rec.Header())
 
 	jwt, err := boiler.Resolve[*jwt.Jwt](b)
 	require.Nil(t, err)
@@ -38,18 +37,6 @@ func TestItLogsInAUser(t *testing.T) {
 	tuser, err := jwt.VerifyUser(ctx, cookies[common.UserAuthCookie])
 	require.Nil(t, err)
 	require.Equal(t, user.ID, tuser.ID)
-}
-
-func parseCookies(t *testing.T, headers http.Header) map[string]string {
-	cookies, ok := headers["Set-Cookie"]
-	require.True(t, ok)
-
-	out := map[string]string{}
-	for _, c := range cookies {
-		valkey := strings.Split(strings.Split(c, "; ")[0], "=")
-		out[valkey[0]] = valkey[1]
-	}
-	return out
 }
 
 func TestItErrorsWhenIncorrectPassword(t *testing.T) {

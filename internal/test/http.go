@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/henrywhitaker3/boiler"
@@ -194,4 +195,16 @@ func Delete(
 	srv.ServeHTTP(rec, req)
 
 	return rec
+}
+
+func ParseCookies(t *testing.T, headers http.Header) map[string]string {
+	cookies, ok := headers["Set-Cookie"]
+	require.True(t, ok)
+
+	out := map[string]string{}
+	for _, c := range cookies {
+		valkey := strings.Split(strings.Split(c, "; ")[0], "=")
+		out[valkey[0]] = valkey[1]
+	}
+	return out
 }

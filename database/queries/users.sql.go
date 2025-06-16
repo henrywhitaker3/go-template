@@ -281,3 +281,22 @@ func (q *Queries) RemoveAdmin(ctx context.Context, arg RemoveAdminParams) (*User
 	)
 	return &i, err
 }
+
+const rotateRefreshToken = `-- name: RotateRefreshToken :exec
+UPDATE
+    refresh_tokens
+SET
+    hash = $1
+WHERE
+    hash = $2
+`
+
+type RotateRefreshTokenParams struct {
+	Newhash     string
+	Currenthash string
+}
+
+func (q *Queries) RotateRefreshToken(ctx context.Context, arg RotateRefreshTokenParams) error {
+	_, err := q.db.ExecContext(ctx, rotateRefreshToken, arg.Newhash, arg.Currenthash)
+	return err
+}

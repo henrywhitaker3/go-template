@@ -32,15 +32,12 @@ func User(opts UserOpts) echo.MiddlewareFunc {
 			refresh := common.GetRefreshToken(c.Request())
 			token := common.GetToken(c.Request())
 			if token == "" && refresh == "" {
-				slog.Debug("both empty")
 				return next(c)
 			}
 
 			user, err := opts.Jwt.VerifyUser(ctx, token)
 			if err != nil {
-				slog.Debug("erorr not nil", "error", err)
 				if !errors.Is(err, pjwt.ErrTokenExpired) && refresh == "" {
-					slog.Debug("exiting here")
 					return next(c)
 				}
 
@@ -54,7 +51,12 @@ func User(opts UserOpts) echo.MiddlewareFunc {
 				if err != nil {
 					return next(c)
 				}
+				newRefresh, err := opts.Users.RotateRefreshToken(ctx, refresh)
+				if err != nil {
+					slog.Error("failed to rotate user refresh token", "error", err)
+				}
 				common.SetUserAuthCookie(c, opts.Domain, token)
+				common.SetUserRefreshTokenCookie(c, opts.Domain, newRefresh)
 			}
 			c.SetRequest(c.Request().WithContext(common.SetUser(c.Request().Context(), user)))
 
