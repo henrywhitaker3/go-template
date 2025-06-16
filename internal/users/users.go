@@ -161,6 +161,22 @@ func (u *Users) DeleteRefreshToken(ctx context.Context, token string) error {
 	return nil
 }
 
+func (u *Users) RotateRefreshToken(ctx context.Context, hash string) (string, error) {
+	token := make([]byte, 64)
+	if _, err := rand.Read(token); err != nil {
+		return "", fmt.Errorf("generate new token: %w", err)
+	}
+	tokenS := hex.EncodeToString(token)
+
+	if err := u.q.RotateRefreshToken(ctx, queries.RotateRefreshTokenParams{
+		Newhash:     crypto.Sum(tokenS),
+		Currenthash: crypto.Sum(hash),
+	}); err != nil {
+		return "", fmt.Errorf("update token hash: %w", err)
+	}
+	return tokenS, nil
+}
+
 func (u *Users) MakeAdmin(ctx context.Context, user *User) error {
 	ud, err := u.q.MakeAdmin(ctx, queries.MakeAdminParams{
 		ID:        user.ID.UUID(),
