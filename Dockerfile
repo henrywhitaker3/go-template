@@ -7,7 +7,7 @@ WORKDIR /build
 COPY . /build/
 
 RUN go mod download
-RUN CGO_ENABLED=0 go build -ldflags="-X main.version=${VERSION}" -a -o api main.go
+RUN CGO_ENABLED=0 go build -ldflags="-X main.version=${VERSION}" -a -o api .
 
 FROM alpine:3.22.0
 
