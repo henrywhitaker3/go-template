@@ -109,6 +109,34 @@ func TestItRefreshesAnExpiredTokenWithValidRefreshToken(t *testing.T) {
 	require.True(t, ok)
 }
 
+func TestItRefreshesWithNoTokenButValidRefresh(t *testing.T) {
+	b := test.Boiler(t)
+
+	srv := boiler.MustResolve[*ohttp.Http](b)
+	users := boiler.MustResolve[*users.Users](b)
+
+	user, _ := test.User(t, b)
+	refresh, err := users.CreateRefreshToken(context.Background(), user.ID, time.Hour)
+	require.Nil(t, err)
+
+	time.Sleep(time.Second * 2)
+
+	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req.AddCookie(&http.Cookie{
+		Name:     common.UserRefreshToken,
+		Value:    refresh,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	rec := httptest.NewRecorder()
+	srv.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	headers := rec.Header()
+	_, ok := headers["Set-Cookie"]
+	require.True(t, ok)
+}
+
 func TestItDoesntRefreshAnExpiredTokenWithInvalidRefreshToken(t *testing.T) {
 	b := test.Boiler(t)
 

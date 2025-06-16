@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -28,23 +29,22 @@ func User(opts UserOpts) echo.MiddlewareFunc {
 			ctx, span := tracing.NewSpan(c.Request().Context(), "GetRequestUser")
 			defer span.End()
 
+			refresh := common.GetRefreshToken(c.Request())
 			token := common.GetToken(c.Request())
-			if token == "" {
+			if token == "" && refresh == "" {
+				slog.Debug("both empty")
 				return next(c)
 			}
 
 			user, err := opts.Jwt.VerifyUser(ctx, token)
 			if err != nil {
-				if !errors.Is(err, pjwt.ErrTokenExpired) {
+				slog.Debug("erorr not nil", "error", err)
+				if !errors.Is(err, pjwt.ErrTokenExpired) && refresh == "" {
+					slog.Debug("exiting here")
 					return next(c)
 				}
 
 				// Token expired, check for refresh token and do things with it
-				refresh := common.GetRefreshToken(c.Request())
-				if refresh == "" {
-					return next(c)
-				}
-
 				u, err := opts.Users.GetUserByRefreshToken(ctx, refresh)
 				if err != nil {
 					return next(c)
