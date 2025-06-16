@@ -11,7 +11,6 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/go-template/internal/uuid"
-	"github.com/redis/rueidis"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,9 +20,6 @@ func TestItGetsTheCurrentUser(t *testing.T) {
 	user, _ := test.User(t, b)
 
 	jwts, err := boiler.Resolve[*jwt.Jwt](b)
-	require.Nil(t, err)
-
-	redis, err := boiler.Resolve[rueidis.Client](b)
 	require.Nil(t, err)
 
 	token, err := jwts.NewForUser(user, time.Minute)
@@ -36,7 +32,7 @@ func TestItGetsTheCurrentUser(t *testing.T) {
 		code  int
 	}
 
-	tempJwt := jwt.New("bongo", redis)
+	tempJwt := jwt.New("bongo")
 
 	randToken, err := tempJwt.NewForUser(&users.User{
 		ID:    uuid.MustNew(),

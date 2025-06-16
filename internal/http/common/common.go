@@ -13,6 +13,9 @@ import (
 var (
 	ctxIdKey   = "request_id"
 	traceIdKey = "trace_id"
+
+	UserAuthCookie   = "user-auth"
+	UserRefreshToken = "user-refresh"
 )
 
 func RequestID(c echo.Context) string {
@@ -58,7 +61,7 @@ func GetToken(req *http.Request) string {
 		return header
 	}
 
-	cookie, err := req.Cookie("auth")
+	cookie, err := req.Cookie(UserAuthCookie)
 	if err == nil {
 		return cookie.Value
 	}

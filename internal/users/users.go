@@ -2,7 +2,9 @@ package users
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/henrywhitaker3/go-template/database/queries"
@@ -109,6 +111,34 @@ func (u *Users) Login(ctx context.Context, email, password string) (*User, error
 		return nil, err
 	}
 	return MapUser(user), nil
+}
+
+func (u *Users) CreateRefreshToken(
+	ctx context.Context,
+	user uuid.UUID,
+	validity time.Duration,
+) (string, error) {
+	id, err := uuid.Ordered()
+	if err != nil {
+		return "", fmt.Errorf("generate token id: %w", err)
+	}
+
+	token := make([]byte, 64)
+	if _, err := rand.Read(token); err != nil {
+		return "", fmt.Errorf("read random bytes: %w", err)
+	}
+
+	_, err = u.q.CreateRefreshToken(ctx, queries.CreateRefreshTokenParams{
+		ID:        id.UUID(),
+		UserID:    user.UUID(),
+		Hash:      crypto.Sum(string(token)),
+		ExpiresAt: time.Now().Add(validity).Unix(),
+	})
+	if err != nil {
+		return "", fmt.Errorf("store refresh token: %w", err)
+	}
+
+	return string(token), nil
 }
 
 func (u *Users) MakeAdmin(ctx context.Context, user *User) error {

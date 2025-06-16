@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/henrywhitaker3/boiler"
-	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/labstack/echo/v4"
@@ -22,10 +21,7 @@ func NewLogout(b *boiler.Boiler) *LogoutHandler {
 
 func (l *LogoutHandler) Handler() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		token := common.GetToken(c.Request())
-		if err := l.jwt.InvalidateToken(c.Request().Context(), token); err != nil {
-			return common.Stack(err)
-		}
+		// token := common.GetToken(c.Request())
 		return c.NoContent(http.StatusAccepted)
 	}
 }

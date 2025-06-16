@@ -2,12 +2,13 @@ package users_test
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/henrywhitaker3/boiler"
+	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/handlers/users"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/test"
@@ -29,15 +30,26 @@ func TestItLogsInAUser(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rec.Code)
 
-	resp := &users.LoginResponse{}
-	require.Nil(t, json.Unmarshal(rec.Body.Bytes(), resp))
+	cookies := parseCookies(t, rec.Header())
 
 	jwt, err := boiler.Resolve[*jwt.Jwt](b)
 	require.Nil(t, err)
 
-	tuser, err := jwt.VerifyUser(ctx, resp.Token)
+	tuser, err := jwt.VerifyUser(ctx, cookies[common.UserAuthCookie])
 	require.Nil(t, err)
 	require.Equal(t, user.ID, tuser.ID)
+}
+
+func parseCookies(t *testing.T, headers http.Header) map[string]string {
+	cookies, ok := headers["Set-Cookie"]
+	require.True(t, ok)
+
+	out := map[string]string{}
+	for _, c := range cookies {
+		valkey := strings.Split(strings.Split(c, "; ")[0], "=")
+		out[valkey[0]] = valkey[1]
+	}
+	return out
 }
 
 func TestItErrorsWhenIncorrectPassword(t *testing.T) {

@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/henrywhitaker3/boiler"
+	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
+	"github.com/henrywhitaker3/go-template/internal/tracing"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/labstack/echo/v4"
 )
@@ -29,45 +31,70 @@ func (l LoginRequest) Validate() error {
 	return nil
 }
 
-type LoginResponse struct {
-	Token string `json:"token"`
-}
-
 type LoginHandler struct {
-	users *users.Users
-	jwt   *jwt.Jwt
+	users  *users.Users
+	jwt    *jwt.Jwt
+	domain string
 }
 
 func NewLogin(b *boiler.Boiler) *LoginHandler {
 	return &LoginHandler{
-		users: boiler.MustResolve[*users.Users](b),
-		jwt:   boiler.MustResolve[*jwt.Jwt](b),
+		users:  boiler.MustResolve[*users.Users](b),
+		jwt:    boiler.MustResolve[*jwt.Jwt](b),
+		domain: boiler.MustResolve[*config.Config](b).Url,
 	}
 }
 
 func (l *LoginHandler) Handler() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		req, ok := common.GetRequest[LoginRequest](c.Request().Context())
+		ctx, span := tracing.NewSpan(c.Request().Context(), "Login")
+		defer span.End()
+
+		req, ok := common.GetRequest[LoginRequest](ctx)
 		if !ok {
 			return common.ErrBadRequest
 		}
 
-		user, err := l.users.Login(c.Request().Context(), req.Email, req.Password)
+		user, err := l.users.Login(ctx, req.Email, req.Password)
 		if err != nil {
 			metrics.Logins.WithLabelValues("false").Inc()
 			return common.ErrUnauth
 		}
 
-		token, err := l.jwt.NewForUser(user, time.Hour)
+		token, err := l.jwt.NewForUser(user, time.Minute*5)
+		if err != nil {
+			return common.Stack(err)
+		}
+
+		refresh, err := l.users.CreateRefreshToken(ctx, user.ID, time.Hour*24*30)
 		if err != nil {
 			return common.Stack(err)
 		}
 
 		metrics.Logins.WithLabelValues("true").Inc()
 
-		return c.JSON(http.StatusOK, LoginResponse{
-			Token: token,
+		c.SetCookie(&http.Cookie{
+			Name:     common.UserAuthCookie,
+			Value:    token,
+			Path:     "/",
+			Domain:   l.domain,
+			Secure:   true,
+			HttpOnly: true,
+			SameSite: http.SameSiteNoneMode,
+			Expires:  time.Now().Add(time.Minute * 5),
 		})
+		c.SetCookie(&http.Cookie{
+			Name:     common.UserRefreshToken,
+			Value:    refresh,
+			Path:     "/",
+			Domain:   l.domain,
+			Secure:   true,
+			HttpOnly: true,
+			SameSite: http.SameSiteNoneMode,
+			Expires:  time.Now().Add(time.Hour * 24 * 30),
+		})
+
+		return c.NoContent(http.StatusOK)
 	}
 }
 

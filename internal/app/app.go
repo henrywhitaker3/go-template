@@ -141,11 +141,7 @@ func RegisterJWT(b *boiler.Boiler) (*jwt.Jwt, error) {
 	if err != nil {
 		return nil, err
 	}
-	redis, err := boiler.Resolve[rueidis.Client](b)
-	if err != nil {
-		return nil, err
-	}
-	return jwt.New(conf.Jwt.Secret, redis), nil
+	return jwt.New(conf.Jwt.Secret), nil
 }
 
 func RegisterHTTP(b *boiler.Boiler) (*ohttp.Http, error) {

@@ -9,9 +9,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/henrywhitaker3/go-template/internal/crypto"
 	"github.com/henrywhitaker3/go-template/internal/users"
-	"github.com/redis/rueidis"
 )
 
 var (
@@ -30,13 +28,11 @@ func GenerateSecret(size int) (string, error) {
 
 type Jwt struct {
 	secret string
-	redis  rueidis.Client
 }
 
-func New(secret string, redis rueidis.Client) *Jwt {
+func New(secret string) *Jwt {
 	return &Jwt{
 		secret: secret,
-		redis:  redis,
 	}
 }
 
@@ -67,29 +63,11 @@ func (j *Jwt) NewForUser(user *users.User, expires time.Duration) (string, error
 }
 
 func (j *Jwt) VerifyUser(ctx context.Context, token string) (*users.User, error) {
-	if err := j.isInvalidated(ctx, token); err != nil {
-		return nil, err
-	}
 	claims, err := j.getUserClaims(token)
 	if err != nil {
 		return nil, err
 	}
 	return claims.User, nil
-}
-
-func (j *Jwt) isInvalidated(ctx context.Context, token string) error {
-	hash := crypto.Sum(token)
-
-	// Check if the token has been invalidated first
-	cmd := j.redis.B().Get().Key(j.invalidatedKey(hash)).Build()
-	res := j.redis.Do(ctx, cmd)
-	if err := res.Error(); err != nil {
-		if !errors.Is(err, rueidis.Nil) {
-			return err
-		}
-		return nil
-	}
-	return ErrInvalidated
 }
 
 func (j *Jwt) getUserClaims(token string) (*userClaims, error) {
@@ -101,25 +79,6 @@ func (j *Jwt) getUserClaims(token string) (*userClaims, error) {
 		return nil, err
 	}
 	return claims, nil
-}
-
-func (j *Jwt) InvalidateToken(ctx context.Context, token string) error {
-	claims, err := j.getUserClaims(token)
-	if err != nil {
-		return err
-	}
-
-	expires := time.Unix(claims.ExpiresAt, 0)
-	remaining := time.Until(expires)
-
-	cmd := j.redis.B().
-		Set().
-		Key(j.invalidatedKey(crypto.Sum(token))).
-		Value("true").
-		Ex(remaining).
-		Build()
-	res := j.redis.Do(ctx, cmd)
-	return res.Error()
 }
 
 type Role string
@@ -147,9 +106,6 @@ func (j *Jwt) Generic(role Role, expires time.Duration) (string, error) {
 }
 
 func (j *Jwt) ValidateGeneric(ctx context.Context, token string) (Role, error) {
-	if err := j.isInvalidated(ctx, token); err != nil {
-		return "", err
-	}
 	claims := &genericClaims{}
 	_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
 		return []byte(j.secret), nil
@@ -166,9 +122,6 @@ func (j *Jwt) invalidatedKey(hash string) string {
 
 func (j *Jwt) Expiry(ctx context.Context, token string) (time.Time, error) {
 	claims := jwt.StandardClaims{}
-	if err := j.isInvalidated(ctx, token); err != nil {
-		return time.Now(), err
-	}
 	_, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (any, error) {
 		return []byte(j.secret), nil
 	})

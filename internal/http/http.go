@@ -55,7 +55,10 @@ func New(b *boiler.Boiler) *Http {
 	e.Use(middleware.Zap(conf.LogLevel.Level()))
 	e.Use(mw.Recover())
 	e.Use(middleware.Logger())
-	e.Use(mw.CORS())
+	cors := mw.DefaultCORSConfig
+	cors.AllowOrigins = conf.Http.AllowedOrigins
+	cors.AllowCredentials = true
+	e.Use(mw.CORSWithConfig(cors))
 
 	h := &Http{
 		e: e,
