@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/henrywhitaker3/go-template/internal/users"
 )
 
@@ -38,7 +38,7 @@ func New(secret string) *Jwt {
 
 type userClaims struct {
 	User *users.User
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func (j *Jwt) NewForUser(user *users.User, expires time.Duration) (string, error) {
@@ -46,9 +46,9 @@ func (j *Jwt) NewForUser(user *users.User, expires time.Duration) (string, error
 
 	claims := userClaims{
 		user,
-		jwt.StandardClaims{
-			ExpiresAt: exp.Unix(),
-			IssuedAt:  time.Now().Unix(),
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(exp),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
 
@@ -65,6 +65,8 @@ func (j *Jwt) NewForUser(user *users.User, expires time.Duration) (string, error
 func (j *Jwt) VerifyUser(ctx context.Context, token string) (*users.User, error) {
 	claims, err := j.getUserClaims(token)
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+		}
 		return nil, err
 	}
 	return claims.User, nil
@@ -72,7 +74,7 @@ func (j *Jwt) VerifyUser(ctx context.Context, token string) (*users.User, error)
 
 func (j *Jwt) getUserClaims(token string) (*userClaims, error) {
 	claims := &userClaims{}
-	_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
 		return []byte(j.secret), nil
 	})
 	if err != nil {
@@ -84,7 +86,7 @@ func (j *Jwt) getUserClaims(token string) (*userClaims, error) {
 type Role string
 
 type genericClaims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	Role Role `json:"role"`
 }
 
@@ -92,9 +94,9 @@ func (j *Jwt) Generic(role Role, expires time.Duration) (string, error) {
 	exp := time.Now().Add(expires)
 	claims := genericClaims{
 		Role: role,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: exp.Unix(),
-			IssuedAt:  time.Now().Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(exp),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -116,12 +118,8 @@ func (j *Jwt) ValidateGeneric(ctx context.Context, token string) (Role, error) {
 	return claims.Role, nil
 }
 
-func (j *Jwt) invalidatedKey(hash string) string {
-	return fmt.Sprintf("tokens:invalidated:%s", hash)
-}
-
 func (j *Jwt) Expiry(ctx context.Context, token string) (time.Time, error) {
-	claims := jwt.StandardClaims{}
+	claims := jwt.RegisteredClaims{}
 	_, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (any, error) {
 		return []byte(j.secret), nil
 	})
@@ -129,8 +127,8 @@ func (j *Jwt) Expiry(ctx context.Context, token string) (time.Time, error) {
 		return time.Now(), fmt.Errorf("could not parse claims: %w", err)
 	}
 
-	if claims.ExpiresAt == 0 {
+	if claims.ExpiresAt == nil {
 		return time.Now(), fmt.Errorf("no expiry set")
 	}
-	return time.Unix(claims.ExpiresAt, 0), nil
+	return claims.ExpiresAt.Time, nil
 }

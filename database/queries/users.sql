@@ -80,10 +80,18 @@ DELETE FROM
 WHERE
     hash = $1;
 
--- name: GetRefreshTokenByHash :exec
+-- name: GetUserByRefreshToken :one
 SELECT
     *
 FROM
-    refresh_tokens
+    users
 WHERE
-    hash = $1;
+    id = (
+        SELECT
+            user_id
+        FROM
+            refresh_tokens
+        WHERE
+            hash = $1
+            AND expires_at > $2
+    );

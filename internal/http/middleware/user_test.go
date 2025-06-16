@@ -1,6 +1,7 @@
 package middleware_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -9,8 +10,10 @@ import (
 
 	"github.com/henrywhitaker3/boiler"
 	ohttp "github.com/henrywhitaker3/go-template/internal/http"
+	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/test"
+	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 )
@@ -48,7 +51,7 @@ func TestItAuthenticatesByHeaderCookie(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
 	req.AddCookie(&http.Cookie{
-		Name:     "auth",
+		Name:     common.UserAuthCookie,
 		Value:    token,
 		Secure:   true,
 		HttpOnly: true,
@@ -56,4 +59,93 @@ func TestItAuthenticatesByHeaderCookie(t *testing.T) {
 	rec := httptest.NewRecorder()
 	srv.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)
+}
+
+func TestItRefreshesAnExpiredTokenWithValidRefreshToken(t *testing.T) {
+	b := test.Boiler(t)
+
+	srv := boiler.MustResolve[*ohttp.Http](b)
+	jwt := boiler.MustResolve[*jwt.Jwt](b)
+	users := boiler.MustResolve[*users.Users](b)
+
+	user, _ := test.User(t, b)
+	token, err := jwt.NewForUser(user, time.Second)
+	require.Nil(t, err)
+	refresh, err := users.CreateRefreshToken(context.Background(), user.ID, time.Hour)
+	require.Nil(t, err)
+
+	time.Sleep(time.Second * 2)
+
+	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req.AddCookie(&http.Cookie{
+		Name:     common.UserAuthCookie,
+		Value:    token,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	rec := httptest.NewRecorder()
+	srv.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusUnauthorized, rec.Code)
+
+	req = httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req.AddCookie(&http.Cookie{
+		Name:     common.UserAuthCookie,
+		Value:    token,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	req.AddCookie(&http.Cookie{
+		Name:     common.UserRefreshToken,
+		Value:    refresh,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	rec = httptest.NewRecorder()
+	srv.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	headers := rec.Header()
+	_, ok := headers["Set-Cookie"]
+	require.True(t, ok)
+}
+
+func TestItDoesntRefreshAnExpiredTokenWithInvalidRefreshToken(t *testing.T) {
+	b := test.Boiler(t)
+
+	srv := boiler.MustResolve[*ohttp.Http](b)
+	jwt := boiler.MustResolve[*jwt.Jwt](b)
+
+	user, _ := test.User(t, b)
+	token, err := jwt.NewForUser(user, time.Second)
+	require.Nil(t, err)
+
+	time.Sleep(time.Second * 2)
+
+	req := httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req.AddCookie(&http.Cookie{
+		Name:     common.UserAuthCookie,
+		Value:    token,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	rec := httptest.NewRecorder()
+	srv.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusUnauthorized, rec.Code)
+
+	req = httptest.NewRequest(http.MethodGet, "/auth/me", nil)
+	req.AddCookie(&http.Cookie{
+		Name:     common.UserAuthCookie,
+		Value:    token,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	req.AddCookie(&http.Cookie{
+		Name:     common.UserRefreshToken,
+		Value:    "bongo",
+		Secure:   true,
+		HttpOnly: true,
+	})
+	rec = httptest.NewRecorder()
+	srv.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusUnauthorized, rec.Code)
 }

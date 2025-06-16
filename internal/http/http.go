@@ -16,6 +16,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
+	iusers "github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
 	mw "github.com/labstack/echo/v4/middleware"
@@ -46,6 +47,8 @@ func New(b *boiler.Boiler) *Http {
 	e.Use(middleware.User(middleware.UserOpts{
 		Config: conf,
 		Jwt:    boiler.MustResolve[*jwt.Jwt](b),
+		Users:  boiler.MustResolve[*iusers.Users](b),
+		Domain: conf.Url,
 	}))
 	if *conf.Telemetry.Sentry.Enabled {
 		e.Use(sentryecho.New(sentryecho.Options{

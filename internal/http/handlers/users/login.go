@@ -73,26 +73,8 @@ func (l *LoginHandler) Handler() echo.HandlerFunc {
 
 		metrics.Logins.WithLabelValues("true").Inc()
 
-		c.SetCookie(&http.Cookie{
-			Name:     common.UserAuthCookie,
-			Value:    token,
-			Path:     "/",
-			Domain:   l.domain,
-			Secure:   true,
-			HttpOnly: true,
-			SameSite: http.SameSiteNoneMode,
-			Expires:  time.Now().Add(time.Minute * 5),
-		})
-		c.SetCookie(&http.Cookie{
-			Name:     common.UserRefreshToken,
-			Value:    refresh,
-			Path:     "/",
-			Domain:   l.domain,
-			Secure:   true,
-			HttpOnly: true,
-			SameSite: http.SameSiteNoneMode,
-			Expires:  time.Now().Add(time.Hour * 24 * 30),
-		})
+		common.SetUserAuthCookie(c, l.domain, token)
+		common.SetUserRefreshTokenCookie(c, l.domain, refresh)
 
 		return c.NoContent(http.StatusOK)
 	}

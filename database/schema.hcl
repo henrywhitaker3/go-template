@@ -97,5 +97,6 @@ table "refresh_tokens" {
   }
   index "idx_refresh_tokens_hash" {
     columns = [column.hash]
+    unique  = true
   }
 }

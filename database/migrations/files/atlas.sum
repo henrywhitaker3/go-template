@@ -1,3 +1,4 @@
-h1:Ub8c8rUeqhsoC2FMhUVZs8gUlZx/PEfRxzM8UpEuoJg=
+h1:YI9KrXjdr8VFyHM+ROmvsBGp0Odg/KmB5pEM+i5tQC8=
 20240812114724_create_users_table.up.sql h1:bfMT3j21OAHRzHDJira5mMPHRgbYWs9CsF88dn81KlE=
 20250616194934_create_refresh_tokens_table.up.sql h1:RWJLK6WIIJAjfMYxuZPdhxL6pvTgGOGfw0XLVkqIQq4=
+20250616202254_alter_refresh_tokens_add_hash_unique.up.sql h1:8bBJ2LbtzOmAcyjlwc9U3TyruKNMLvktTdpbzOj1FrE=

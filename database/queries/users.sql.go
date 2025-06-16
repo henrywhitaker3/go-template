@@ -124,20 +124,6 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-const getRefreshTokenByHash = `-- name: GetRefreshTokenByHash :exec
-SELECT
-    id, user_id, hash, created_at, expires_at
-FROM
-    refresh_tokens
-WHERE
-    hash = $1
-`
-
-func (q *Queries) GetRefreshTokenByHash(ctx context.Context, hash string) error {
-	_, err := q.db.ExecContext(ctx, getRefreshTokenByHash, hash)
-	return err
-}
-
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT
     id, name, email, password, admin, created_at, updated_at, deleted_at
@@ -178,6 +164,44 @@ LIMIT
 
 func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (*User, error) {
 	row := q.db.QueryRowContext(ctx, getUserById, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.Admin,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return &i, err
+}
+
+const getUserByRefreshToken = `-- name: GetUserByRefreshToken :one
+SELECT
+    id, name, email, password, admin, created_at, updated_at, deleted_at
+FROM
+    users
+WHERE
+    id = (
+        SELECT
+            user_id
+        FROM
+            refresh_tokens
+        WHERE
+            hash = $1
+            AND expires_at > $2
+    )
+`
+
+type GetUserByRefreshTokenParams struct {
+	Hash      string
+	ExpiresAt int64
+}
+
+func (q *Queries) GetUserByRefreshToken(ctx context.Context, arg GetUserByRefreshTokenParams) (*User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByRefreshToken, arg.Hash, arg.ExpiresAt)
 	var i User
 	err := row.Scan(
 		&i.ID,
