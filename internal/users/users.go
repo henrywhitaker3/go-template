@@ -133,7 +133,7 @@ func (u *Users) CreateRefreshToken(
 	_, err = u.q.CreateRefreshToken(ctx, queries.CreateRefreshTokenParams{
 		ID:        id.UUID(),
 		UserID:    user.UUID(),
-		Hash:      tokenS,
+		Hash:      crypto.Sum(tokenS),
 		ExpiresAt: time.Now().Add(validity).Unix(),
 	})
 	if err != nil {
@@ -145,7 +145,7 @@ func (u *Users) CreateRefreshToken(
 
 func (u *Users) GetUserByRefreshToken(ctx context.Context, token string) (*User, error) {
 	user, err := u.q.GetUserByRefreshToken(ctx, queries.GetUserByRefreshTokenParams{
-		Hash:      token,
+		Hash:      crypto.Sum(token),
 		ExpiresAt: time.Now().Unix(),
 	})
 	if err != nil {
@@ -155,7 +155,7 @@ func (u *Users) GetUserByRefreshToken(ctx context.Context, token string) (*User,
 }
 
 func (u *Users) DeleteRefreshToken(ctx context.Context, token string) error {
-	if err := u.q.DeleteRefreshTokenByHash(ctx, token); err != nil {
+	if err := u.q.DeleteRefreshTokenByHash(ctx, crypto.Sum(token)); err != nil {
 		return fmt.Errorf("delete refresh token by hash: %w", err)
 	}
 	return nil
