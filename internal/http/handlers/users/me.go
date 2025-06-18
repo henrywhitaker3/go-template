@@ -14,8 +14,8 @@ func NewMe() *MeHandler {
 	return &MeHandler{}
 }
 
-func (m *MeHandler) Handler() echo.HandlerFunc {
-	return func(c echo.Context) error {
+func (m *MeHandler) Handler() common.Handler[any] {
+	return func(c echo.Context, _ any) error {
 		user, _ := common.GetUser(c.Request().Context())
 		return c.JSON(http.StatusOK, user)
 	}

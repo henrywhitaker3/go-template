@@ -7,7 +7,6 @@ import (
 
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
-	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/users"
@@ -57,13 +56,8 @@ func NewRegister(b *boiler.Boiler) *RegisterHandler {
 	}
 }
 
-func (r *RegisterHandler) Handler() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		req, ok := common.GetRequest[RegisterRequest](c.Request().Context())
-		if !ok {
-			return common.ErrBadRequest
-		}
-
+func (r *RegisterHandler) Handler() common.Handler[RegisterRequest] {
+	return func(c echo.Context, req RegisterRequest) error {
 		user, err := r.users.CreateUser(c.Request().Context(), users.CreateParams{
 			Name:     req.Name,
 			Email:    req.Email,
@@ -96,7 +90,5 @@ func (r *RegisterHandler) Path() string {
 }
 
 func (r *RegisterHandler) Middleware() []echo.MiddlewareFunc {
-	return []echo.MiddlewareFunc{
-		middleware.Bind[RegisterRequest](),
-	}
+	return []echo.MiddlewareFunc{}
 }

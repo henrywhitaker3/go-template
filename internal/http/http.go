@@ -72,12 +72,12 @@ func New(b *boiler.Boiler) *Http {
 	h.e.HTTPErrorHandler = h.handleError
 
 	Register[users.LoginRequest, any](e, users.NewLogin(b))
-	h.Register(users.NewLogout(b))
-	h.Register(users.NewRegister(b))
-	h.Register(users.NewMe())
-	h.Register(users.NewMakeAdmin(b))
-	h.Register(users.NewRemoveAdmin(b))
-	h.Register(users.NewIsAdminHandler(b))
+	Register[any, any](e, users.NewLogout(b))
+	Register[users.RegisterRequest, users.RegisterResponse](e, users.NewRegister(b))
+	Register[any, any](e, users.NewMe())
+	Register[users.AdminRequest, any](e, users.NewMakeAdmin(b))
+	Register[users.AdminRequest, any](e, users.NewRemoveAdmin(b))
+	Register[any, any](e, users.NewIsAdminHandler(b))
 
 	return h
 }
@@ -117,7 +117,7 @@ type Handler interface {
 }
 
 type GenericHandler[Req any, Resp any] interface {
-	Handler() func(echo.Context, Req) error
+	Handler() common.Handler[Req]
 	Method() string
 	Path() string
 	Middleware() []echo.MiddlewareFunc

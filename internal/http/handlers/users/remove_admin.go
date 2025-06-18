@@ -23,13 +23,8 @@ func NewRemoveAdmin(b *boiler.Boiler) *RemoveAdminHandler {
 	}
 }
 
-func (m *RemoveAdminHandler) Handler() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		req, ok := common.GetRequest[AdminRequest](c.Request().Context())
-		if !ok {
-			return common.ErrBadRequest
-		}
-
+func (m *RemoveAdminHandler) Handler() common.Handler[AdminRequest] {
+	return func(c echo.Context, req AdminRequest) error {
 		user, err := m.users.Get(c.Request().Context(), req.ID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
@@ -60,6 +55,5 @@ func (m *RemoveAdminHandler) Middleware() []echo.MiddlewareFunc {
 		middleware.Admin(middleware.AdminOpts{
 			Users: m.users,
 		}),
-		middleware.Bind[AdminRequest](),
 	}
 }

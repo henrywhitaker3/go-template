@@ -5,7 +5,6 @@ import (
 
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
-	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/labstack/echo/v4"
@@ -21,8 +20,8 @@ func NewLogout(b *boiler.Boiler) *LogoutHandler {
 	}
 }
 
-func (l *LogoutHandler) Handler() echo.HandlerFunc {
-	return func(c echo.Context) error {
+func (l *LogoutHandler) Handler() common.Handler[any] {
+	return func(c echo.Context, _ any) error {
 		ctx, span := tracing.NewSpan(c.Request().Context(), "Logout")
 		defer span.End()
 
@@ -44,7 +43,5 @@ func (l *LogoutHandler) Path() string {
 }
 
 func (l *LogoutHandler) Middleware() []echo.MiddlewareFunc {
-	return []echo.MiddlewareFunc{
-		middleware.Authenticated(),
-	}
+	return []echo.MiddlewareFunc{}
 }

@@ -44,7 +44,7 @@ func NewLogin(b *boiler.Boiler) *LoginHandler {
 	}
 }
 
-func (l *LoginHandler) Handler() func(echo.Context, LoginRequest) error {
+func (l *LoginHandler) Handler() common.Handler[LoginRequest] {
 	return func(c echo.Context, req LoginRequest) error {
 		ctx, span := tracing.NewSpan(c.Request().Context(), "Login")
 		defer span.End()
