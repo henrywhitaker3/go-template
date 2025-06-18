@@ -16,7 +16,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grafana/otel-profiling-go v0.5.1
 	github.com/grafana/pyroscope-go v1.2.2
-	github.com/henrywhitaker3/boiler v1.4.4
+	github.com/henrywhitaker3/boiler v1.4.6
 	github.com/henrywhitaker3/ctxgen v1.0.1
 	github.com/henrywhitaker3/go-cache v1.1.0
 	github.com/henrywhitaker3/probes v1.0.1
