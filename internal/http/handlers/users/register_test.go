@@ -52,6 +52,16 @@ func TestItRegistersUsers(t *testing.T) {
 			code: http.StatusUnprocessableEntity,
 		},
 		{
+			name: "422s with invalid email",
+			req: users.RegisterRequest{
+				Name:                 test.Word(),
+				Email:                test.Sentence(3),
+				Password:             password,
+				PasswordConfirmation: password,
+			},
+			code: http.StatusUnprocessableEntity,
+		},
+		{
 			name: "422s with no email",
 			req: users.RegisterRequest{
 				Name:                 test.Word(),
@@ -64,7 +74,7 @@ func TestItRegistersUsers(t *testing.T) {
 			name: "422s with no password",
 			req: users.RegisterRequest{
 				Name:                 test.Word(),
-				Email:                test.Sentence(5),
+				Email:                test.Email(),
 				PasswordConfirmation: password,
 			},
 			code: http.StatusUnprocessableEntity,
@@ -73,7 +83,7 @@ func TestItRegistersUsers(t *testing.T) {
 			name: "422s with no password_confirmation",
 			req: users.RegisterRequest{
 				Name:     test.Word(),
-				Email:    test.Sentence(5),
+				Email:    test.Email(),
 				Password: password,
 			},
 			code: http.StatusUnprocessableEntity,
@@ -82,7 +92,7 @@ func TestItRegistersUsers(t *testing.T) {
 			name: "422s with non-matching password_confirmation",
 			req: users.RegisterRequest{
 				Name:                 test.Word(),
-				Email:                test.Sentence(5),
+				Email:                test.Email(),
 				Password:             password,
 				PasswordConfirmation: test.Sentence(5),
 			},
@@ -93,8 +103,8 @@ func TestItRegistersUsers(t *testing.T) {
 	for _, c := range tcs {
 		t.Run(c.name, func(t *testing.T) {
 			rec := test.Post(t, b, "/auth/register", c.req, "")
-			require.Equal(t, c.code, rec.Code)
 			t.Log(rec.Body.String())
+			require.Equal(t, c.code, rec.Code)
 		})
 	}
 }

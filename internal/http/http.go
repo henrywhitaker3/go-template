@@ -14,6 +14,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/handlers/users"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/http/validation"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
@@ -26,6 +27,8 @@ import (
 type Http struct {
 	e *echo.Echo
 	b *boiler.Boiler
+
+	validator *validation.Validator
 }
 
 func New(b *boiler.Boiler) *Http {
@@ -65,19 +68,20 @@ func New(b *boiler.Boiler) *Http {
 	e.Use(mw.CORSWithConfig(cors))
 
 	h := &Http{
-		e: e,
-		b: b,
+		e:         e,
+		b:         b,
+		validator: validation.New(),
 	}
 
 	h.e.HTTPErrorHandler = h.handleError
 
-	Register[users.LoginRequest, any](e, users.NewLogin(b))
-	Register[any, any](e, users.NewLogout(b))
-	Register[users.RegisterRequest, users.RegisterResponse](e, users.NewRegister(b))
-	Register[any, any](e, users.NewMe())
-	Register[users.AdminRequest, any](e, users.NewMakeAdmin(b))
-	Register[users.AdminRequest, any](e, users.NewRemoveAdmin(b))
-	Register[any, any](e, users.NewIsAdminHandler(b))
+	Register[users.LoginRequest, any](h, users.NewLogin(b))
+	Register[any, any](h, users.NewLogout(b))
+	Register[users.RegisterRequest, users.RegisterResponse](h, users.NewRegister(b))
+	Register[any, any](h, users.NewMe())
+	Register[users.AdminRequest, any](h, users.NewMakeAdmin(b))
+	Register[users.AdminRequest, any](h, users.NewRemoveAdmin(b))
+	Register[any, any](h, users.NewIsAdminHandler(b))
 
 	return h
 }
@@ -109,76 +113,14 @@ func (h *Http) Routes() []*echo.Route {
 	return h.e.Routes()
 }
 
-type Handler interface {
-	Handler() echo.HandlerFunc
-	Method() string
-	Path() string
-	Middleware() []echo.MiddlewareFunc
-}
-
-type GenericHandler[Req any, Resp any] interface {
+type Handler[Req any, Resp any] interface {
 	Handler() common.Handler[Req]
 	Method() string
 	Path() string
 	Middleware() []echo.MiddlewareFunc
 }
 
-func Register[Req any, Resp any](e *echo.Echo, handler GenericHandler[Req, Resp]) {
-	var reg func(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-
-	switch handler.Method() {
-	case http.MethodGet:
-		reg = e.GET
-	case http.MethodPost:
-		reg = e.POST
-	case http.MethodPatch:
-		reg = e.PATCH
-	case http.MethodDelete:
-		reg = e.DELETE
-	case http.MethodPut:
-		reg = e.PUT
-	case http.MethodHead:
-		reg = e.HEAD
-	case http.MethodOptions:
-		reg = e.OPTIONS
-	default:
-		panic("invalid http method registered")
-	}
-
-	mw := handler.Middleware()
-	if len(mw) == 0 {
-		// Add a empty middleware so []... doesn't add a nil item
-		mw = []echo.MiddlewareFunc{
-			func(next echo.HandlerFunc) echo.HandlerFunc {
-				return func(c echo.Context) error {
-					return next(c)
-				}
-			},
-		}
-	}
-
-	reg(handler.Path(), wrapHandler[Req, Resp](handler), mw...)
-}
-
-func wrapHandler[Req any, Resp any](h GenericHandler[Req, Resp]) echo.HandlerFunc {
-	handler := h.Handler()
-	return func(c echo.Context) error {
-		_, span := tracing.NewSpan(c.Request().Context(), "BindRequest")
-		defer span.End()
-
-		var req Req
-		if err := c.Bind(&req); err != nil {
-			slog.Debug("failed to bind request", "error", err)
-			return common.ErrBadRequest
-		}
-		// TODO: validation
-		span.End()
-
-		return handler(c, req)
-	}
-}
-
-func (h *Http) Register(handler Handler) {
+func Register[Req any, Resp any](h *Http, handler Handler[Req, Resp]) {
 	var reg func(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 
 	switch handler.Method() {
@@ -212,32 +154,59 @@ func (h *Http) Register(handler Handler) {
 		}
 	}
 
-	reg(handler.Path(), handler.Handler(), mw...)
+	reg(handler.Path(), wrapHandler[Req, Resp](h.validator, handler), mw...)
+}
+
+func wrapHandler[Req any, Resp any](
+	v *validation.Validator,
+	h Handler[Req, Resp],
+) echo.HandlerFunc {
+	handler := h.Handler()
+	return func(c echo.Context) error {
+		_, span := tracing.NewSpan(c.Request().Context(), "BindRequest")
+		defer span.End()
+
+		var req Req
+		if err := c.Bind(&req); err != nil {
+			slog.Debug("failed to bind request", "error", err)
+			return common.ErrBadRequest
+		}
+		span.End()
+
+		_, span = tracing.NewSpan(c.Request().Context(), "ValidateRequest")
+		defer span.End()
+		if err := v.Validate(req); err != nil {
+			return err
+		}
+		span.End()
+
+		return handler(c, req)
+	}
 }
 
 func (h *Http) handleError(err error, c echo.Context) {
 	switch true {
 	case errors.Is(err, sql.ErrNoRows):
-		c.JSON(http.StatusNotFound, newError("not found"))
+		_ = c.JSON(http.StatusNotFound, newError("not found"))
 
 	case errors.Is(err, common.ErrValidation):
-		c.JSON(http.StatusUnprocessableEntity, newError(err.Error()))
+		_ = c.JSON(http.StatusUnprocessableEntity, newError(err.Error()))
 
 	case errors.Is(err, common.ErrBadRequest):
-		c.JSON(http.StatusBadRequest, newError(err.Error()))
+		_ = c.JSON(http.StatusBadRequest, newError(err.Error()))
 
 	case errors.Is(err, common.ErrUnauth):
-		c.JSON(http.StatusUnauthorized, newError(err.Error()))
+		_ = c.JSON(http.StatusUnauthorized, newError(err.Error()))
 
 	case errors.Is(err, common.ErrForbidden):
-		c.JSON(http.StatusForbidden, newError("fobidden"))
+		_ = c.JSON(http.StatusForbidden, newError("fobidden"))
 
 	case errors.Is(err, common.ErrNotFound):
-		c.JSON(http.StatusNotFound, newError("not found"))
+		_ = c.JSON(http.StatusNotFound, newError("not found"))
 
 	case h.isHttpError(err):
 		herr := err.(*echo.HTTPError)
-		c.JSON(herr.Code, herr)
+		_ = c.JSON(herr.Code, herr)
 
 	default:
 		pgErr, ok := h.asPgError(err)
@@ -245,12 +214,18 @@ func (h *Http) handleError(err error, c echo.Context) {
 			switch pgErr.Code {
 			// Unique constraint violation
 			case "23505":
-				c.JSON(
+				_ = c.JSON(
 					http.StatusUnprocessableEntity,
 					newError("a record with the same details already exists"),
 				)
 				return
 			}
+		}
+
+		validErr := &validation.ValidationError{}
+		if ok := errors.As(err, &validErr); ok {
+			_ = c.JSON(http.StatusUnprocessableEntity, validErr)
+			return
 		}
 
 		slog.ErrorContext(c.Request().Context(), "unhandled error", "error", err)
