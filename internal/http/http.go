@@ -16,6 +16,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
+	"github.com/henrywhitaker3/go-template/internal/tracing"
 	iusers "github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
@@ -70,7 +71,7 @@ func New(b *boiler.Boiler) *Http {
 
 	h.e.HTTPErrorHandler = h.handleError
 
-	h.Register(users.NewLogin(b))
+	Register[users.LoginRequest, any](e, users.NewLogin(b))
 	h.Register(users.NewLogout(b))
 	h.Register(users.NewRegister(b))
 	h.Register(users.NewMe())
@@ -113,6 +114,68 @@ type Handler interface {
 	Method() string
 	Path() string
 	Middleware() []echo.MiddlewareFunc
+}
+
+type GenericHandler[Req any, Resp any] interface {
+	Handler() func(echo.Context, Req) error
+	Method() string
+	Path() string
+	Middleware() []echo.MiddlewareFunc
+}
+
+func Register[Req any, Resp any](e *echo.Echo, handler GenericHandler[Req, Resp]) {
+	var reg func(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+
+	switch handler.Method() {
+	case http.MethodGet:
+		reg = e.GET
+	case http.MethodPost:
+		reg = e.POST
+	case http.MethodPatch:
+		reg = e.PATCH
+	case http.MethodDelete:
+		reg = e.DELETE
+	case http.MethodPut:
+		reg = e.PUT
+	case http.MethodHead:
+		reg = e.HEAD
+	case http.MethodOptions:
+		reg = e.OPTIONS
+	default:
+		panic("invalid http method registered")
+	}
+
+	mw := handler.Middleware()
+	if len(mw) == 0 {
+		// Add a empty middleware so []... doesn't add a nil item
+		mw = []echo.MiddlewareFunc{
+			func(next echo.HandlerFunc) echo.HandlerFunc {
+				return func(c echo.Context) error {
+					return next(c)
+				}
+			},
+		}
+	}
+
+	reg(handler.Path(), wrapHandler[Req, Resp](handler), mw...)
+}
+
+func wrapHandler[Req any, Resp any](h GenericHandler[Req, Resp]) echo.HandlerFunc {
+	handler := h.Handler()
+	return func(c echo.Context) error {
+		_, span := tracing.NewSpan(c.Request().Context(), "BindRequest")
+		defer span.End()
+
+		var req Req
+		if err := c.Bind(&req); err != nil {
+			slog.Debug("failed to bind request", "error", err)
+			return common.ErrBadRequest
+		}
+		// TODO: validation
+		span.End()
+
+		return handler(c, req)
+	}
 }
 
 func (h *Http) Register(handler Handler) {

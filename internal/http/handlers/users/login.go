@@ -8,7 +8,6 @@ import (
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
-	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
@@ -45,15 +44,10 @@ func NewLogin(b *boiler.Boiler) *LoginHandler {
 	}
 }
 
-func (l *LoginHandler) Handler() echo.HandlerFunc {
-	return func(c echo.Context) error {
+func (l *LoginHandler) Handler() func(echo.Context, LoginRequest) error {
+	return func(c echo.Context, req LoginRequest) error {
 		ctx, span := tracing.NewSpan(c.Request().Context(), "Login")
 		defer span.End()
-
-		req, ok := common.GetRequest[LoginRequest](ctx)
-		if !ok {
-			return common.ErrBadRequest
-		}
 
 		user, err := l.users.Login(ctx, req.Email, req.Password)
 		if err != nil {
@@ -89,7 +83,5 @@ func (l *LoginHandler) Path() string {
 }
 
 func (l *LoginHandler) Middleware() []echo.MiddlewareFunc {
-	return []echo.MiddlewareFunc{
-		middleware.Bind[LoginRequest](),
-	}
+	return []echo.MiddlewareFunc{}
 }
