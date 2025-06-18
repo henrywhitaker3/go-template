@@ -14,8 +14,10 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/http/handlers/users"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/http/validation"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
+	"github.com/henrywhitaker3/go-template/internal/tracing"
 	iusers "github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
@@ -25,6 +27,8 @@ import (
 type Http struct {
 	e *echo.Echo
 	b *boiler.Boiler
+
+	validator *validation.Validator
 }
 
 func New(b *boiler.Boiler) *Http {
@@ -64,19 +68,20 @@ func New(b *boiler.Boiler) *Http {
 	e.Use(mw.CORSWithConfig(cors))
 
 	h := &Http{
-		e: e,
-		b: b,
+		e:         e,
+		b:         b,
+		validator: validation.New(),
 	}
 
 	h.e.HTTPErrorHandler = h.handleError
 
-	h.Register(users.NewLogin(b))
-	h.Register(users.NewLogout(b))
-	h.Register(users.NewRegister(b))
-	h.Register(users.NewMe())
-	h.Register(users.NewMakeAdmin(b))
-	h.Register(users.NewRemoveAdmin(b))
-	h.Register(users.NewIsAdminHandler(b))
+	Register[users.LoginRequest, any](h, users.NewLogin(b))
+	Register[any, any](h, users.NewLogout(b))
+	Register[users.RegisterRequest, users.RegisterResponse](h, users.NewRegister(b))
+	Register[any, any](h, users.NewMe())
+	Register[users.AdminRequest, any](h, users.NewMakeAdmin(b))
+	Register[users.AdminRequest, any](h, users.NewRemoveAdmin(b))
+	Register[any, any](h, users.NewIsAdminHandler(b))
 
 	return h
 }
@@ -108,14 +113,14 @@ func (h *Http) Routes() []*echo.Route {
 	return h.e.Routes()
 }
 
-type Handler interface {
-	Handler() echo.HandlerFunc
+type Handler[Req any, Resp any] interface {
+	Handler() common.Handler[Req]
 	Method() string
 	Path() string
 	Middleware() []echo.MiddlewareFunc
 }
 
-func (h *Http) Register(handler Handler) {
+func Register[Req any, Resp any](h *Http, handler Handler[Req, Resp]) {
 	var reg func(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 
 	switch handler.Method() {
@@ -149,32 +154,59 @@ func (h *Http) Register(handler Handler) {
 		}
 	}
 
-	reg(handler.Path(), handler.Handler(), mw...)
+	reg(handler.Path(), wrapHandler[Req, Resp](h.validator, handler), mw...)
+}
+
+func wrapHandler[Req any, Resp any](
+	v *validation.Validator,
+	h Handler[Req, Resp],
+) echo.HandlerFunc {
+	handler := h.Handler()
+	return func(c echo.Context) error {
+		_, span := tracing.NewSpan(c.Request().Context(), "BindRequest")
+		defer span.End()
+
+		var req Req
+		if err := c.Bind(&req); err != nil {
+			slog.Debug("failed to bind request", "error", err)
+			return common.ErrBadRequest
+		}
+		span.End()
+
+		_, span = tracing.NewSpan(c.Request().Context(), "ValidateRequest")
+		defer span.End()
+		if err := v.Validate(req); err != nil {
+			return err
+		}
+		span.End()
+
+		return handler(c, req)
+	}
 }
 
 func (h *Http) handleError(err error, c echo.Context) {
 	switch true {
 	case errors.Is(err, sql.ErrNoRows):
-		c.JSON(http.StatusNotFound, newError("not found"))
+		_ = c.JSON(http.StatusNotFound, newError("not found"))
 
 	case errors.Is(err, common.ErrValidation):
-		c.JSON(http.StatusUnprocessableEntity, newError(err.Error()))
+		_ = c.JSON(http.StatusUnprocessableEntity, newError(err.Error()))
 
 	case errors.Is(err, common.ErrBadRequest):
-		c.JSON(http.StatusBadRequest, newError(err.Error()))
+		_ = c.JSON(http.StatusBadRequest, newError(err.Error()))
 
 	case errors.Is(err, common.ErrUnauth):
-		c.JSON(http.StatusUnauthorized, newError(err.Error()))
+		_ = c.JSON(http.StatusUnauthorized, newError(err.Error()))
 
 	case errors.Is(err, common.ErrForbidden):
-		c.JSON(http.StatusForbidden, newError("fobidden"))
+		_ = c.JSON(http.StatusForbidden, newError("fobidden"))
 
 	case errors.Is(err, common.ErrNotFound):
-		c.JSON(http.StatusNotFound, newError("not found"))
+		_ = c.JSON(http.StatusNotFound, newError("not found"))
 
 	case h.isHttpError(err):
 		herr := err.(*echo.HTTPError)
-		c.JSON(herr.Code, herr)
+		_ = c.JSON(herr.Code, herr)
 
 	default:
 		pgErr, ok := h.asPgError(err)
@@ -182,12 +214,18 @@ func (h *Http) handleError(err error, c echo.Context) {
 			switch pgErr.Code {
 			// Unique constraint violation
 			case "23505":
-				c.JSON(
+				_ = c.JSON(
 					http.StatusUnprocessableEntity,
 					newError("a record with the same details already exists"),
 				)
 				return
 			}
+		}
+
+		validErr := &validation.ValidationError{}
+		if ok := errors.As(err, &validErr); ok {
+			_ = c.JSON(http.StatusUnprocessableEntity, validErr)
+			return
 		}
 
 		slog.ErrorContext(c.Request().Context(), "unhandled error", "error", err)

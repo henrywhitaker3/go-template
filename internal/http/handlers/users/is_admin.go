@@ -21,8 +21,8 @@ func NewIsAdminHandler(b *boiler.Boiler) *IsAdminHandler {
 	}
 }
 
-func (i *IsAdminHandler) Handler() echo.HandlerFunc {
-	return func(c echo.Context) error {
+func (i *IsAdminHandler) Handler() common.Handler[any] {
+	return func(c echo.Context, _ any) error {
 		ctx, span := tracing.NewSpan(c.Request().Context(), "IsAdmin")
 		defer span.End()
 

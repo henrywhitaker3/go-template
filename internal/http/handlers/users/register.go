@@ -7,7 +7,7 @@ import (
 
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
-	"github.com/henrywhitaker3/go-template/internal/http/middleware"
+	"github.com/henrywhitaker3/go-template/internal/http/validation"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/users"
@@ -15,10 +15,10 @@ import (
 )
 
 type RegisterRequest struct {
-	Name                 string `json:"name"`
-	Email                string `json:"email"`
-	Password             string `json:"password"`
-	PasswordConfirmation string `json:"password_confirmation"`
+	Name                 string `json:"name"                  validate:"required,max=255"`
+	Email                string `json:"email"                 validate:"required,email"`
+	Password             string `json:"password"              validate:"required"`
+	PasswordConfirmation string `json:"password_confirmation" validate:"required"`
 }
 
 func (r RegisterRequest) Validate() error {
@@ -57,13 +57,12 @@ func NewRegister(b *boiler.Boiler) *RegisterHandler {
 	}
 }
 
-func (r *RegisterHandler) Handler() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		req, ok := common.GetRequest[RegisterRequest](c.Request().Context())
-		if !ok {
-			return common.ErrBadRequest
+func (r *RegisterHandler) Handler() common.Handler[RegisterRequest] {
+	return func(c echo.Context, req RegisterRequest) error {
+		if req.Password != req.PasswordConfirmation {
+			return validation.Build().
+				With("password_confirmation", "password and password_confirmation must match")
 		}
-
 		user, err := r.users.CreateUser(c.Request().Context(), users.CreateParams{
 			Name:     req.Name,
 			Email:    req.Email,
@@ -96,7 +95,5 @@ func (r *RegisterHandler) Path() string {
 }
 
 func (r *RegisterHandler) Middleware() []echo.MiddlewareFunc {
-	return []echo.MiddlewareFunc{
-		middleware.Bind[RegisterRequest](),
-	}
+	return []echo.MiddlewareFunc{}
 }
