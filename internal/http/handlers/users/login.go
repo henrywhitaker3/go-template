@@ -1,7 +1,6 @@
 package users
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -16,18 +15,8 @@ import (
 )
 
 type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-func (l LoginRequest) Validate() error {
-	if l.Email == "" {
-		return fmt.Errorf("%w email", common.ErrRequiredField)
-	}
-	if l.Password == "" {
-		return fmt.Errorf("%w password", common.ErrRequiredField)
-	}
-	return nil
+	Email    string `json:"email"    validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
 
 type LoginHandler struct {
@@ -44,25 +33,25 @@ func NewLogin(b *boiler.Boiler) *LoginHandler {
 	}
 }
 
-func (l *LoginHandler) Handler() common.Handler[LoginRequest] {
-	return func(c echo.Context, req LoginRequest) error {
+func (l *LoginHandler) Handler() common.Handler[LoginRequest, any] {
+	return func(c echo.Context, req LoginRequest) (*any, error) {
 		ctx, span := tracing.NewSpan(c.Request().Context(), "Login")
 		defer span.End()
 
 		user, err := l.users.Login(ctx, req.Email, req.Password)
 		if err != nil {
 			metrics.Logins.WithLabelValues("false").Inc()
-			return common.ErrUnauth
+			return nil, common.ErrUnauth
 		}
 
 		token, err := l.jwt.NewForUser(user, time.Minute*5)
 		if err != nil {
-			return common.Stack(err)
+			return nil, common.Stack(err)
 		}
 
 		refresh, err := l.users.CreateRefreshToken(ctx, user.ID, time.Hour*24*30)
 		if err != nil {
-			return common.Stack(err)
+			return nil, common.Stack(err)
 		}
 
 		metrics.Logins.WithLabelValues("true").Inc()
@@ -70,16 +59,20 @@ func (l *LoginHandler) Handler() common.Handler[LoginRequest] {
 		common.SetUserAuthCookie(c, l.domain, token)
 		common.SetUserRefreshTokenCookie(c, l.domain, refresh)
 
-		return c.NoContent(http.StatusOK)
+		return nil, nil
 	}
 }
 
-func (l *LoginHandler) Method() string {
-	return http.MethodPost
-}
-
-func (l *LoginHandler) Path() string {
-	return "/auth/login"
+func (m *LoginHandler) Metadata() common.Metadata {
+	return common.Metadata{
+		Name:         "Login",
+		Description:  "Login as a user",
+		Tag:          "Auth",
+		Code:         http.StatusOK,
+		Method:       http.MethodPost,
+		Path:         "/auth/login",
+		GenerateSpec: true,
+	}
 }
 
 func (l *LoginHandler) Middleware() []echo.MiddlewareFunc {

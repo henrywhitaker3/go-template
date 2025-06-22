@@ -7,11 +7,14 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
+	"strings"
 
 	sentryecho "github.com/getsentry/sentry-go/echo"
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
+	"github.com/henrywhitaker3/go-template/internal/http/handlers/docs"
 	"github.com/henrywhitaker3/go-template/internal/http/handlers/users"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/henrywhitaker3/go-template/internal/http/validation"
@@ -19,14 +22,20 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
 	iusers "github.com/henrywhitaker3/go-template/internal/users"
+	"github.com/henrywhitaker3/go-template/internal/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
 	mw "github.com/labstack/echo/v4/middleware"
+	"github.com/swaggest/jsonschema-go"
+	"github.com/swaggest/openapi-go"
+	"github.com/swaggest/openapi-go/openapi3"
 )
 
 type Http struct {
 	e *echo.Echo
 	b *boiler.Boiler
+
+	spec *openapi3.Reflector
 
 	validator *validation.Validator
 }
@@ -67,21 +76,35 @@ func New(b *boiler.Boiler) *Http {
 	cors.AllowCredentials = true
 	e.Use(mw.CORSWithConfig(cors))
 
+	r := openapi3.Reflector{}
+	r.Spec = &openapi3.Spec{Openapi: "3.0.3"}
+	r.Spec.Info.WithTitle(conf.Name).WithVersion(string(b.Version()))
+	addSpecTypes(&r)
 	h := &Http{
 		e:         e,
 		b:         b,
+		spec:      &r,
 		validator: validation.New(),
 	}
 
 	h.e.HTTPErrorHandler = h.handleError
 
-	Register[users.LoginRequest, any](h, users.NewLogin(b))
-	Register[any, any](h, users.NewLogout(b))
-	Register[users.RegisterRequest, users.RegisterResponse](h, users.NewRegister(b))
-	Register[any, any](h, users.NewMe())
-	Register[users.AdminRequest, any](h, users.NewMakeAdmin(b))
-	Register[users.AdminRequest, any](h, users.NewRemoveAdmin(b))
-	Register[any, any](h, users.NewIsAdminHandler(b))
+	Register(h, users.NewLogin(b))
+	Register(h, users.NewLogout(b))
+	Register(h, users.NewRegister(b))
+	Register(h, users.NewMe())
+	Register(h, users.NewMakeAdmin(b))
+	Register(h, users.NewRemoveAdmin(b))
+	Register(h, users.NewIsAdminHandler(b))
+
+	// Docs
+	schema, err := h.spec.Spec.MarshalYAML()
+	if err != nil {
+		panic(fmt.Errorf("could not marshal openai spec: %w", err))
+	}
+
+	Register(h, docs.NewSchema(string(schema)))
+	h.e.GET("/docs/*", docs.NewSwagger(b).Handler())
 
 	return h
 }
@@ -114,16 +137,15 @@ func (h *Http) Routes() []*echo.Route {
 }
 
 type Handler[Req any, Resp any] interface {
-	Handler() common.Handler[Req]
-	Method() string
-	Path() string
+	Handler() common.Handler[Req, Resp]
 	Middleware() []echo.MiddlewareFunc
+	Metadata() common.Metadata
 }
 
 func Register[Req any, Resp any](h *Http, handler Handler[Req, Resp]) {
 	var reg func(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 
-	switch handler.Method() {
+	switch handler.Metadata().Method {
 	case http.MethodGet:
 		reg = h.e.GET
 	case http.MethodPost:
@@ -154,7 +176,12 @@ func Register[Req any, Resp any](h *Http, handler Handler[Req, Resp]) {
 		}
 	}
 
-	reg(handler.Path(), wrapHandler[Req, Resp](h.validator, handler), mw...)
+	reg(handler.Metadata().Path, wrapHandler(h.validator, handler), mw...)
+	if handler.Metadata().GenerateSpec {
+		if err := buildSchema(h, handler); err != nil {
+			panic(fmt.Errorf("invalid openapi spec: %w", err))
+		}
+	}
 }
 
 func wrapHandler[Req any, Resp any](
@@ -180,8 +207,64 @@ func wrapHandler[Req any, Resp any](
 		}
 		span.End()
 
-		return handler(c, req)
+		resp, err := handler(c, req)
+		if err != nil {
+			return err
+		}
+
+		if resp == nil {
+			return c.NoContent(h.Metadata().Code)
+		}
+
+		switch h.Metadata().Kind {
+		case common.KindString:
+			return c.String(h.Metadata().Code, fmt.Sprintf("%v", *resp))
+		case common.KindJson:
+			fallthrough
+		default:
+			return c.JSON(h.Metadata().Code, *resp)
+		}
 	}
+}
+
+func buildSchema[Req any, Resp any](h *Http, handler Handler[Req, Resp]) error {
+	opctx, err := h.spec.NewOperationContext(
+		handler.Metadata().Method,
+		replaceParams(handler.Metadata().Path),
+	)
+	if err != nil {
+		return err
+	}
+	var req Req
+	opctx.AddReqStructure(req)
+	var resp Resp
+	opctx.AddRespStructure(
+		resp,
+		openapi.WithHTTPStatus(handler.Metadata().Code),
+	)
+	opctx.SetTags(handler.Metadata().Tag)
+	opctx.SetSummary(handler.Metadata().Name)
+	if handler.Metadata().Description != "" {
+		opctx.SetDescription(handler.Metadata().Description)
+	}
+
+	return h.spec.AddOperation(opctx)
+}
+
+var (
+	echoParams = regexp.MustCompile(`:[A-Za-z0-9]+`)
+)
+
+func replaceParams(path string) string {
+	matches := echoParams.FindAllString(path, -1)
+	for _, match := range matches {
+		path = strings.ReplaceAll(
+			path,
+			match,
+			fmt.Sprintf("{%s}", strings.ReplaceAll(match, ":", "")),
+		)
+	}
+	return path
 }
 
 func (h *Http) handleError(err error, c echo.Context) {
@@ -259,4 +342,13 @@ func (h *Http) asPgError(err error) (*pgconn.PgError, bool) {
 		return pg, true
 	}
 	return nil, false
+}
+
+func addSpecTypes(r *openapi3.Reflector) {
+	uuidDef := jsonschema.Schema{}
+	uuidDef.AddType(jsonschema.String)
+	uuidDef.WithFormat("uuid")
+	uuidDef.WithExamples("01972d8a-8038-7523-abb5-48a2bc60bedc")
+	uuidDef.WithTitle("UUID")
+	r.AddTypeMapping(uuid.UUID{}, uuidDef)
 }

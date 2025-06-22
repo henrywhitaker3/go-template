@@ -23,30 +23,34 @@ func NewRemoveAdmin(b *boiler.Boiler) *RemoveAdminHandler {
 	}
 }
 
-func (m *RemoveAdminHandler) Handler() common.Handler[AdminRequest] {
-	return func(c echo.Context, req AdminRequest) error {
+func (m *RemoveAdminHandler) Handler() common.Handler[AdminRequest, any] {
+	return func(c echo.Context, req AdminRequest) (*any, error) {
 		user, err := m.users.Get(c.Request().Context(), req.ID)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				return fmt.Errorf("%w: user not found", common.ErrValidation)
+				return nil, fmt.Errorf("%w: user not found", common.ErrValidation)
 			}
-			return common.Stack(err)
+			return nil, common.Stack(err)
 		}
 
 		if err := m.users.RemoveAdmin(c.Request().Context(), user); err != nil {
-			return common.Stack(err)
+			return nil, common.Stack(err)
 		}
 
-		return c.NoContent(http.StatusAccepted)
+		return nil, nil
 	}
 }
 
-func (m *RemoveAdminHandler) Method() string {
-	return http.MethodDelete
-}
-
-func (m *RemoveAdminHandler) Path() string {
-	return "/auth/admin"
+func (m *RemoveAdminHandler) Metadata() common.Metadata {
+	return common.Metadata{
+		Name:         "Remove admin",
+		Description:  "Remove admin privileges form a user",
+		Tag:          "Auth",
+		Code:         http.StatusAccepted,
+		Method:       http.MethodDelete,
+		Path:         "/auth/admin",
+		GenerateSpec: true,
+	}
 }
 
 func (m *RemoveAdminHandler) Middleware() []echo.MiddlewareFunc {

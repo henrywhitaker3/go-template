@@ -21,35 +21,38 @@ func NewIsAdminHandler(b *boiler.Boiler) *IsAdminHandler {
 	}
 }
 
-func (i *IsAdminHandler) Handler() common.Handler[any] {
-	return func(c echo.Context, _ any) error {
+func (i *IsAdminHandler) Handler() common.Handler[any, any] {
+	return func(c echo.Context, _ any) (*any, error) {
 		ctx, span := tracing.NewSpan(c.Request().Context(), "IsAdmin")
 		defer span.End()
 
 		user, ok := common.GetUser(ctx)
 		if !ok {
-			return common.ErrUnauth
+			return nil, common.ErrUnauth
 		}
 
 		user, err := i.users.Get(ctx, user.ID)
 		if err != nil {
-			return common.Stack(err)
+			return nil, common.Stack(err)
 		}
 
 		if user.Admin {
-			return c.NoContent(http.StatusOK)
+			return nil, nil
 		}
 
-		return common.ErrForbidden
+		return nil, common.ErrForbidden
 	}
 }
 
-func (i *IsAdminHandler) Method() string {
-	return http.MethodGet
-}
-
-func (i *IsAdminHandler) Path() string {
-	return "/auth/admin"
+func (m *IsAdminHandler) Metadata() common.Metadata {
+	return common.Metadata{
+		Name:         "Check if you are an admin",
+		Tag:          "Auth",
+		Code:         http.StatusOK,
+		Method:       http.MethodGet,
+		Path:         "/auth/admin",
+		GenerateSpec: true,
+	}
 }
 
 func (i *IsAdminHandler) Middleware() []echo.MiddlewareFunc {
