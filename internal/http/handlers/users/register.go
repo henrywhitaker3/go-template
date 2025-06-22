@@ -1,7 +1,6 @@
 package users
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -21,25 +20,6 @@ type RegisterRequest struct {
 	PasswordConfirmation string `json:"password_confirmation" validate:"required"`
 }
 
-func (r RegisterRequest) Validate() error {
-	if r.Name == "" {
-		return fmt.Errorf("%w name", common.ErrRequiredField)
-	}
-	if r.Email == "" {
-		return fmt.Errorf("%w email", common.ErrRequiredField)
-	}
-	if r.Password == "" {
-		return fmt.Errorf("%w password", common.ErrRequiredField)
-	}
-	if r.PasswordConfirmation == "" {
-		return fmt.Errorf("%w password_confirmation", common.ErrRequiredField)
-	}
-	if r.Password != r.PasswordConfirmation {
-		return fmt.Errorf("%w password and password_confirmation", common.ErrNotEqual)
-	}
-	return nil
-}
-
 type RegisterResponse struct {
 	User  *users.User `json:"user"`
 	Token string      `json:"token"`
@@ -57,10 +37,10 @@ func NewRegister(b *boiler.Boiler) *RegisterHandler {
 	}
 }
 
-func (r *RegisterHandler) Handler() common.Handler[RegisterRequest] {
-	return func(c echo.Context, req RegisterRequest) error {
+func (r *RegisterHandler) Handler() common.Handler[RegisterRequest, RegisterResponse] {
+	return func(c echo.Context, req RegisterRequest) (*RegisterResponse, error) {
 		if req.Password != req.PasswordConfirmation {
-			return validation.Build().
+			return nil, validation.Build().
 				With("password_confirmation", "password and password_confirmation must match")
 		}
 		user, err := r.users.CreateUser(c.Request().Context(), users.CreateParams{
@@ -69,29 +49,33 @@ func (r *RegisterHandler) Handler() common.Handler[RegisterRequest] {
 			Password: req.Password,
 		})
 		if err != nil {
-			return common.Stack(err)
+			return nil, common.Stack(err)
 		}
 
 		token, err := r.jwt.NewForUser(user, time.Hour)
 		if err != nil {
-			return common.Stack(err)
+			return nil, common.Stack(err)
 		}
 
 		metrics.Registrations.Inc()
 
-		return c.JSON(http.StatusCreated, RegisterResponse{
+		return &RegisterResponse{
 			User:  user,
 			Token: token,
-		})
+		}, nil
 	}
 }
 
-func (r *RegisterHandler) Method() string {
-	return http.MethodPost
-}
-
-func (r *RegisterHandler) Path() string {
-	return "/auth/register"
+func (m *RegisterHandler) Metadata() common.Metadata {
+	return common.Metadata{
+		Name:         "Register new user",
+		Description:  "Register a new user account",
+		Tag:          "Auth",
+		Code:         http.StatusCreated,
+		Method:       http.MethodPost,
+		Path:         "/auth/register",
+		GenerateSpec: true,
+	}
 }
 
 func (r *RegisterHandler) Middleware() []echo.MiddlewareFunc {

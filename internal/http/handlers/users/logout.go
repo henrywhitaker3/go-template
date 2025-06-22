@@ -20,26 +20,31 @@ func NewLogout(b *boiler.Boiler) *LogoutHandler {
 	}
 }
 
-func (l *LogoutHandler) Handler() common.Handler[any] {
-	return func(c echo.Context, _ any) error {
+func (l *LogoutHandler) Handler() common.Handler[any, any] {
+	return func(c echo.Context, _ any) (*any, error) {
 		ctx, span := tracing.NewSpan(c.Request().Context(), "Logout")
 		defer span.End()
 
 		if refresh := common.GetRefreshToken(c.Request()); refresh != "" {
 			if err := l.users.DeleteRefreshToken(ctx, refresh); err != nil {
-				return common.Stack(err)
+				return nil, common.Stack(err)
 			}
 		}
-		return c.NoContent(http.StatusAccepted)
+
+		return nil, nil
 	}
 }
 
-func (l *LogoutHandler) Method() string {
-	return http.MethodPost
-}
-
-func (l *LogoutHandler) Path() string {
-	return "/auth/logout"
+func (m *LogoutHandler) Metadata() common.Metadata {
+	return common.Metadata{
+		Name:         "Logout",
+		Description:  "Logout and invalidate refresh token",
+		Tag:          "Auth",
+		Code:         http.StatusAccepted,
+		Method:       http.MethodPost,
+		Path:         "/auth/logout",
+		GenerateSpec: true,
+	}
 }
 
 func (l *LogoutHandler) Middleware() []echo.MiddlewareFunc {
