@@ -30,7 +30,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.22.0
 	github.com/redis/go-redis/extra/redisotel/v9 v9.11.0
-	github.com/redis/go-redis/v9 v9.11.0
+	github.com/redis/go-redis/v9 v9.12.1
 	github.com/redis/rueidis v1.0.64
 	github.com/redis/rueidis/rueidisotel v1.0.64
 	github.com/sethvargo/go-envconfig v1.3.0
