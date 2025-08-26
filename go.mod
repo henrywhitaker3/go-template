@@ -1,6 +1,6 @@
 module github.com/henrywhitaker3/go-template
 
-go 1.24.3
+go 1.25.0
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.4
