@@ -1,6 +1,6 @@
-FROM golang:1.24 AS gob
+FROM golang:1.25 AS gob
 
-ARG version="unknown"
+ARG VERSION="unknown"
 
 WORKDIR /build
 
