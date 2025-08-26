@@ -3,7 +3,7 @@ module github.com/henrywhitaker3/go-template
 go 1.24.3
 
 require (
-	github.com/KimMachineGun/automemlimit v0.7.3
+	github.com/KimMachineGun/automemlimit v0.7.4
 	github.com/XSAM/otelsql v0.39.0
 	github.com/brianvoe/gofakeit/v7 v7.4.0
 	github.com/docker/go-connections v0.5.0
