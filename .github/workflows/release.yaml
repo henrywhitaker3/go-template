@@ -16,7 +16,7 @@ jobs:
       matrix:
         chart: [api, worker]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: main
       - uses: henrywhitaker3/ci-bump@main
@@ -37,7 +37,7 @@ jobs:
           PULL_REQUEST: ${{ steps.pr.outputs.pull-request-number }}
           MERGE_RETRIES: 10
           MERGE_RETRY_SLEEP: 30000
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: main
       - name: Get chart version
@@ -70,7 +70,7 @@ jobs:
       packages: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Login to ghcr.io
         uses: docker/login-action@v3
         with:
