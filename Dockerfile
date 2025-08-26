@@ -9,7 +9,7 @@ COPY . /build/
 RUN go mod download
 RUN CGO_ENABLED=0 go build -ldflags="-X main.version=${VERSION}" -a -o api .
 
-FROM alpine:3.22.0
+FROM alpine:3.22.1
 
 COPY --from=gob /build/api /api
 VOLUME [ "/config" ]
