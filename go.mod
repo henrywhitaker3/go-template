@@ -12,7 +12,7 @@ require (
 	github.com/go-co-op/gocron/v2 v2.16.3
 	github.com/go-kit/log v0.2.1
 	github.com/go-playground/validator/v10 v10.27.0
-	github.com/golang-jwt/jwt/v5 v5.2.2
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/google/uuid v1.6.0
 	github.com/grafana/otel-profiling-go v0.5.1
