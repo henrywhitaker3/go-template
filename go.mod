@@ -29,8 +29,8 @@ require (
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.23.0
-	github.com/redis/go-redis/extra/redisotel/v9 v9.11.0
-	github.com/redis/go-redis/v9 v9.11.0
+	github.com/redis/go-redis/extra/redisotel/v9 v9.12.1
+	github.com/redis/go-redis/v9 v9.12.1
 	github.com/redis/rueidis v1.0.64
 	github.com/redis/rueidis/rueidisotel v1.0.64
 	github.com/sethvargo/go-envconfig v1.3.0
@@ -141,7 +141,7 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.65.0 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
-	github.com/redis/go-redis/extra/rediscmd/v9 v9.11.0 // indirect
+	github.com/redis/go-redis/extra/rediscmd/v9 v9.12.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.25.1 // indirect
