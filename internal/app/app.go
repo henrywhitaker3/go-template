@@ -270,6 +270,10 @@ func RegisterQueue(b *boiler.Boiler) (*queue.Producer, error) {
 		}),
 	})
 
+	b.RegisterShutdown(func(b *boiler.Boiler) error {
+		return prod.Close(b.Context())
+	})
+
 	return prod, nil
 }
 
@@ -340,14 +344,22 @@ func RegisterDefaultQueueWorker(
 	}
 
 	driver, err := queueConsumer(b, queue.Queue("default"))
+	if err != nil {
+		return nil, err
+	}
 
-	return queue.NewConsumer(queue.ConsumerOpts{
+	cons := queue.NewConsumer(queue.ConsumerOpts{
 		Consumer: driver,
 		Observer: queue.NewObserver(queue.ObserverOpts{
 			Logger: slog.Default(),
 			Reg:    met.Registry,
 		}),
-	}), nil
+	})
+	b.RegisterShutdown(func(b *boiler.Boiler) error {
+		return cons.Close(b.Context())
+	})
+
+	return cons, nil
 }
 
 func queueConsumer(b *boiler.Boiler, queueName queue.Queue) (queue.QueueConsumer, error) {
