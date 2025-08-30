@@ -18,12 +18,12 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	iprobes "github.com/henrywhitaker3/go-template/internal/probes"
 	"github.com/henrywhitaker3/go-template/internal/queue"
-	"github.com/henrywhitaker3/go-template/internal/redis"
 	"github.com/henrywhitaker3/go-template/internal/storage"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/probes"
 	"github.com/henrywhitaker3/windowframe/crypto"
 	"github.com/henrywhitaker3/windowframe/database/postgres"
+	"github.com/henrywhitaker3/windowframe/redis"
 	"github.com/henrywhitaker3/windowframe/workers"
 	"github.com/redis/rueidis"
 	"github.com/thanos-io/objstore"
@@ -105,15 +105,28 @@ func RegisterRedis(b *boiler.Boiler) (rueidis.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	redis, err := redis.New(b.Context(), conf)
+	client, err := redis.New(b.Context(), redis.RedisOpts{
+		Addr:           conf.Redis.Addr,
+		Password:       conf.Redis.Password,
+		MaxFlushDelay:  conf.Redis.MaxFlushDelay,
+		TracingEnabled: *conf.Telemetry.Tracing.Enabled,
+	})
 	if err != nil {
 		return nil, err
 	}
+	go redis.CheckCanWrite(b.Context(), client, func(status bool) {
+		switch status {
+		case true:
+			iprobes.Healthy(iprobes.Redis)
+		case false:
+			iprobes.Unhealthy(iprobes.Redis)
+		}
+	})
 	b.RegisterShutdown(func(b *boiler.Boiler) error {
-		redis.Close()
+		client.Close()
 		return nil
 	})
-	return redis, nil
+	return client, nil
 }
 
 func RegisterCache(b *boiler.Boiler) (*gocache.Cache, error) {
