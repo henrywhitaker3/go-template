@@ -9,7 +9,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/henrywhitaker3/go-template/internal/users"
-	"github.com/henrywhitaker3/go-template/internal/uuid"
+	"github.com/henrywhitaker3/windowframe/uuid"
 	"github.com/stretchr/testify/require"
 )
 
