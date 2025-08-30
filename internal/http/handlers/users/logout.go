@@ -5,7 +5,7 @@ import (
 
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/http/common"
-	"github.com/henrywhitaker3/go-template/internal/tracing"
+	"github.com/henrywhitaker3/windowframe/tracing"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/labstack/echo/v4"
 )

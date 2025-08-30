@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/henrywhitaker3/go-template/internal/metrics"
-	"github.com/henrywhitaker3/go-template/internal/tracing"
+	"github.com/henrywhitaker3/windowframe/tracing"
 	"github.com/hibiken/asynq"
 	ametrics "github.com/hibiken/asynq/x/metrics"
 	"github.com/prometheus/client_golang/prometheus"

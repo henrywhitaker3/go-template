@@ -17,8 +17,8 @@ import (
 	"github.com/henrywhitaker3/go-template/cmd/root"
 	"github.com/henrywhitaker3/go-template/cmd/secrets"
 	"github.com/henrywhitaker3/go-template/internal/config"
-	"github.com/henrywhitaker3/go-template/internal/tracing"
 	"github.com/henrywhitaker3/windowframe/log"
+	"github.com/henrywhitaker3/windowframe/tracing"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
@@ -90,7 +90,13 @@ func main() {
 		}
 
 		slog.Info("tracing enabled", "rate", conf.Telemetry.Tracing.SampleRate)
-		tracer, err := tracing.InitTracer(conf, version)
+		tracer, err := tracing.InitTracer(tracing.TracingOpts{
+			ServiceName:      conf.Telemetry.Tracing.ServiceName,
+			Endpoint:         conf.Telemetry.Tracing.Endpoint,
+			Environment:      conf.Environment,
+			SampleRate:       conf.Telemetry.Tracing.SampleRate,
+			ProfilingEnabled: *conf.Telemetry.Profiling.Enabled,
+		}, version)
 		if err != nil {
 			return fmt.Errorf("setup tracer: %w", err)
 		}

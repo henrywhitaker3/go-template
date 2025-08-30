@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/henrywhitaker3/go-template/internal/metrics"
-	"github.com/henrywhitaker3/go-template/internal/tracing"
+	"github.com/henrywhitaker3/windowframe/tracing"
 	"github.com/hibiken/asynq"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/attribute"

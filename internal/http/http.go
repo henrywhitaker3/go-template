@@ -20,7 +20,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/http/validation"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
-	"github.com/henrywhitaker3/go-template/internal/tracing"
+	"github.com/henrywhitaker3/windowframe/tracing"
 	iusers "github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/windowframe/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
