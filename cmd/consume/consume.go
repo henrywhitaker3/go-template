@@ -7,7 +7,7 @@ import (
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
-	"github.com/henrywhitaker3/go-template/internal/queue"
+	"github.com/henrywhitaker3/windowframe/queue"
 	"github.com/spf13/cobra"
 )
 
@@ -30,19 +30,22 @@ func New(b *boiler.Boiler) *cobra.Command {
 			go metricsServer.Start(cmd.Context())
 			defer metricsServer.Stop(context.Background())
 
-			consumer, err := boiler.ResolveNamed[*queue.Worker](b, fmt.Sprintf("queue:%s", args[0]))
+			consumer, err := boiler.ResolveNamed[*queue.Consumer](
+				b,
+				fmt.Sprintf("queue:%s", args[0]),
+			)
 			if err != nil {
 				return err
 			}
 
 			go func() {
 				<-cmd.Context().Done()
-				consumer.Shutdown(context.Background())
+				consumer.Close(context.Background())
 			}()
 
 			consumer.RegisterMetrics(metricsServer.Registry)
 
-			return consumer.Consume()
+			return consumer.Consume(cmd.Context())
 		},
 	}
 }
