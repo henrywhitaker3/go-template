@@ -17,8 +17,8 @@ import (
 	"github.com/henrywhitaker3/go-template/cmd/root"
 	"github.com/henrywhitaker3/go-template/cmd/secrets"
 	"github.com/henrywhitaker3/go-template/internal/config"
-	"github.com/henrywhitaker3/go-template/internal/logger"
 	"github.com/henrywhitaker3/go-template/internal/tracing"
+	"github.com/henrywhitaker3/windowframe/log"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
@@ -61,7 +61,7 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-		logger.Setup(conf.LogLevel.Level())
+		log.Setup(conf.LogLevel.Level())
 		return slog.Default(), nil
 	})
 	b.RegisterSetup(func(b *boiler.Boiler) error {
