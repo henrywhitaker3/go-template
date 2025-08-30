@@ -22,6 +22,7 @@ require (
 	github.com/henrywhitaker3/go-cache v1.1.0
 	github.com/henrywhitaker3/probes v1.0.1
 	github.com/henrywhitaker3/rueidisleader v1.0.6
+	github.com/henrywhitaker3/windowframe v1.0.2
 	github.com/hibiken/asynq v0.25.1
 	github.com/hibiken/asynq/x v0.0.0-20250401060612-c327bc40a28e
 	github.com/jackc/pgx/v5 v5.7.5
@@ -33,7 +34,6 @@ require (
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/redis/rueidis v1.0.64
 	github.com/redis/rueidis/rueidisotel v1.0.64
-	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggest/jsonschema-go v0.3.78
@@ -147,10 +147,11 @@ require (
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.12.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
+	github.com/sethvargo/go-envconfig v1.3.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.25.5 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
-	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/spf13/pflag v1.0.7 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
 	github.com/swaggo/swag v1.8.1 // indirect
