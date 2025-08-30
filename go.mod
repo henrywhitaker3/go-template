@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.4
-	github.com/brianvoe/gofakeit/v7 v7.5.0
+	github.com/brianvoe/gofakeit/v7 v7.5.1
 	github.com/docker/go-connections v0.6.0
 	github.com/getsentry/sentry-go v0.35.1
 	github.com/getsentry/sentry-go/echo v0.35.1
