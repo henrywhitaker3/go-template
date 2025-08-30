@@ -13,6 +13,7 @@ import (
 	"github.com/henrywhitaker3/go-template/database/migrations"
 	"github.com/henrywhitaker3/go-template/database/queries"
 	"github.com/henrywhitaker3/go-template/internal/config"
+	"github.com/henrywhitaker3/windowframe/crypto"
 	ohttp "github.com/henrywhitaker3/go-template/internal/http"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
