@@ -344,6 +344,9 @@ func RegisterDefaultQueueWorker(
 	}
 
 	driver, err := queueConsumer(b, queue.Queue("default"))
+	if err != nil {
+		return nil, err
+	}
 
 	cons := queue.NewConsumer(queue.ConsumerOpts{
 		Consumer: driver,
