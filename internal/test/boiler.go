@@ -12,8 +12,8 @@ import (
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/config"
-	"github.com/henrywhitaker3/go-template/internal/logger"
 	pg "github.com/henrywhitaker3/go-template/internal/postgres"
+	wlog "github.com/henrywhitaker3/windowframe/log"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/log"
@@ -54,7 +54,7 @@ func newBoiler(t *testing.T) *boiler.Boiler {
 	b := boiler.New(ctx)
 
 	t.Log("spinning up postgres container")
-	logger.Setup(slog.LevelDebug, testingWriter{t: t})
+	wlog.Setup(slog.LevelDebug, testingWriter{t: t})
 	pgCont, err := postgres.Run(
 		ctx,
 		"postgres:17",
