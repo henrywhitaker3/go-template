@@ -239,8 +239,8 @@ github.com/henrywhitaker3/probes v1.0.1 h1:HIk85wrQtpJJFIIyl3+txdh9ETmhoj1TKIR7/
 github.com/henrywhitaker3/probes v1.0.1/go.mod h1:3MCZg3hltGuyUFFNb2mhck/7RuanDd9ndlHpm0CpEYQ=
 github.com/henrywhitaker3/rueidisleader v1.0.6 h1:+FPXSY68rk8g8lJpuodKK5QQYd/uNAjNsclalzj2tds=
 github.com/henrywhitaker3/rueidisleader v1.0.6/go.mod h1:C/1B1tHK2IM/j4XEaTWbEe4XrHyUUNu78vbs1Xuff/M=
-github.com/henrywhitaker3/windowframe v1.0.2 h1:edkzbfCpyVxxhr1ni/S1nx/Izy51QMbfBG03un4bF0E=
-github.com/henrywhitaker3/windowframe v1.0.2/go.mod h1:hR6K0c9almNqr9mHDK/NP6kh0W7ynVPfSL8B9FyvlgQ=
+github.com/henrywhitaker3/windowframe v1.1.0 h1:VGjpoaUV/+dV9AeMMRyhuRDsD0fhO2n0A6ieFzx7JbA=
+github.com/henrywhitaker3/windowframe v1.1.0/go.mod h1:G8z8Yfi/+OIDHHaI/p3Mr6LEKBDNZYqg0WZ5sPexRms=
 github.com/hibiken/asynq v0.25.1 h1:phj028N0nm15n8O2ims+IvJ2gz4k2auvermngh9JhTw=
 github.com/hibiken/asynq v0.25.1/go.mod h1:pazWNOLBu0FEynQRBvHA26qdIKRSmfdIfUm4HdsLmXg=
 github.com/hibiken/asynq/x v0.0.0-20250401060612-c327bc40a28e h1:Iok0j6qdmvZCzwy64V+flwtAQW4e45hcAHywTZnEaTw=
@@ -337,6 +337,12 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f h1:KUppIJq7/+SVif2QVs3tOP0zanoHgBEVAwHxUSIzRqU=
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
+github.com/nats-io/nats.go v1.45.0 h1:/wGPbnYXDM0pLKFjZTX+2JOw9TQPoIgTFrUaH97giwA=
+github.com/nats-io/nats.go v1.45.0/go.mod h1:iRWIPokVIFbVijxuMQq4y9ttaBTMe0SFdlZfMDd+33g=
+github.com/nats-io/nkeys v0.4.11 h1:q44qGV008kYd9W1b1nEBkNzvnWxtRSQ7A8BoqRrcfa0=
+github.com/nats-io/nkeys v0.4.11/go.mod h1:szDimtgmfOi9n25JpfIdGw12tZFYXqhGxjhVxsatHVE=
+github.com/nats-io/nuid v1.0.1 h1:5iA8DT8V7q8WK2EScv2padNa/rTESc1KdnPw4TC2paw=
+github.com/nats-io/nuid v1.0.1/go.mod h1:19wcPz3Ph3q0Jbyiqsd0kePYG7A95tJPxeL+1OSON2c=
 github.com/ncw/swift v1.0.53 h1:luHjjTNtekIEvHg5KdAFIBaH7bWfNkefwFnpDffSIks=
 github.com/ncw/swift v1.0.53/go.mod h1:23YIA4yWVnGwv2dQlN4bB7egfYX6YLn0Yo/S6zZO/ZM=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
@@ -443,6 +449,8 @@ github.com/tencentyun/cos-go-sdk-v5 v0.7.40 h1:W6vDGKCHe4wBACI1d2UgE6+50sJFhRWU4
 github.com/tencentyun/cos-go-sdk-v5 v0.7.40/go.mod h1:4dCEtLHGh8QPxHEkgq+nFaky7yZxQuYwgSJM87icDaw=
 github.com/testcontainers/testcontainers-go v0.38.0 h1:d7uEapLcv2P8AvH8ahLqDMMxda2W9gQN1nRbHS28HBw=
 github.com/testcontainers/testcontainers-go v0.38.0/go.mod h1:C52c9MoHpWO+C4aqmgSU+hxlR5jlEayWtgYrb8Pzz1w=
+github.com/testcontainers/testcontainers-go/modules/nats v0.38.0 h1:TKSximMPnslF4MuqOFAQyC8EWEIbTklSMDyEcRWxTSc=
+github.com/testcontainers/testcontainers-go/modules/nats v0.38.0/go.mod h1:zxGn/qHEPcy/lBBKp71JdOCZxauAOV6rdHF5i0zeiik=
 github.com/testcontainers/testcontainers-go/modules/postgres v0.38.0 h1:KFdx9A0yF94K70T6ibSuvgkQQeX1xKlZVF3hEagXEtY=
 github.com/testcontainers/testcontainers-go/modules/postgres v0.38.0/go.mod h1:T/QRECND6N6tAKMxF1Za+G2tpwnGEHcODzHRsgIpw9M=
 github.com/testcontainers/testcontainers-go/modules/redis v0.38.0 h1:289pn0BFmGqDrd6BrImZAprFef9aaPZacx07YOQaPV4=

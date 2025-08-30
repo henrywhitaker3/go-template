@@ -9,7 +9,6 @@ require (
 	github.com/docker/go-connections v0.6.0
 	github.com/getsentry/sentry-go v0.35.1
 	github.com/getsentry/sentry-go/echo v0.35.1
-	github.com/go-co-op/gocron/v2 v2.16.4
 	github.com/go-kit/log v0.2.1
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
@@ -21,8 +20,7 @@ require (
 	github.com/henrywhitaker3/ctxgen v1.0.1
 	github.com/henrywhitaker3/go-cache v1.1.0
 	github.com/henrywhitaker3/probes v1.0.1
-	github.com/henrywhitaker3/rueidisleader v1.0.6
-	github.com/henrywhitaker3/windowframe v1.0.2
+	github.com/henrywhitaker3/windowframe v1.1.0
 	github.com/hibiken/asynq v0.25.1
 	github.com/hibiken/asynq/x v0.0.0-20250401060612-c327bc40a28e
 	github.com/jackc/pgx/v5 v5.7.5
@@ -90,6 +88,7 @@ require (
 	github.com/efficientgo/core v1.0.0-rc.0.0.20221201130417-ba593f67d2a4 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/go-co-op/gocron/v2 v2.16.4 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
@@ -107,6 +106,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/henrywhitaker3/rueidisleader v1.0.6 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect

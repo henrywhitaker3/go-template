@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/henrywhitaker3/go-template/database/queries"
-	"github.com/henrywhitaker3/go-template/internal/workers"
+	"github.com/henrywhitaker3/windowframe/workers"
 )
 
 type Expirer struct {
