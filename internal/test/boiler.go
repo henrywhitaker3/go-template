@@ -12,7 +12,7 @@ import (
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/config"
-	pg "github.com/henrywhitaker3/go-template/internal/postgres"
+	pg "github.com/henrywhitaker3/windowframe/database/postgres"
 	wlog "github.com/henrywhitaker3/windowframe/log"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"

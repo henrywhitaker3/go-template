@@ -12,17 +12,17 @@ import (
 	gocache "github.com/henrywhitaker3/go-cache"
 	"github.com/henrywhitaker3/go-template/database/queries"
 	"github.com/henrywhitaker3/go-template/internal/config"
-	"github.com/henrywhitaker3/windowframe/crypto"
 	ohttp "github.com/henrywhitaker3/go-template/internal/http"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
-	"github.com/henrywhitaker3/go-template/internal/postgres"
 	iprobes "github.com/henrywhitaker3/go-template/internal/probes"
 	"github.com/henrywhitaker3/go-template/internal/queue"
 	"github.com/henrywhitaker3/go-template/internal/redis"
 	"github.com/henrywhitaker3/go-template/internal/storage"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/probes"
+	"github.com/henrywhitaker3/windowframe/crypto"
+	"github.com/henrywhitaker3/windowframe/database/postgres"
 	"github.com/henrywhitaker3/windowframe/workers"
 	"github.com/redis/rueidis"
 	"github.com/thanos-io/objstore"
@@ -76,7 +76,11 @@ func RegisterDB(b *boiler.Boiler) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db, err := postgres.Open(b.Context(), conf.Database.Uri(), conf.Telemetry.Tracing)
+	trace := false
+	if conf.Telemetry.Tracing.Enabled != nil && *conf.Telemetry.Tracing.Enabled {
+		trace = true
+	}
+	db, err := postgres.Open(b.Context(), conf.Database.Uri(), trace)
 	if err != nil {
 		return nil, err
 	}

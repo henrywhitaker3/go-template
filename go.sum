@@ -140,6 +140,8 @@ github.com/envoyproxy/go-control-plane/envoy v1.32.4 h1:jb83lalDRZSpPWW2Z7Mck/8k
 github.com/envoyproxy/go-control-plane/envoy v1.32.4/go.mod h1:Gzjc5k8JcJswLjAx1Zm+wSYE20UrLtt7JZMWiWQXQEw=
 github.com/envoyproxy/protoc-gen-validate v1.2.1 h1:DEo3O99U8j4hBFwbJfrz9VtgcDfUKS7KJ7spH3d86P8=
 github.com/envoyproxy/protoc-gen-validate v1.2.1/go.mod h1:d/C80l/jxXLdfEIhX1W2TmLfsJ31lvEjwamM4DxlWXU=
+github.com/exaring/otelpgx v0.9.3 h1:4yO02tXC7ZJZ+hcqcUkfxblYNCIFGVhpUWI0iw1TzPU=
+github.com/exaring/otelpgx v0.9.3/go.mod h1:R5/M5LWsPPBZc1SrRE5e0DiU48bI78C1/GPTWs6I66U=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=
@@ -239,8 +241,8 @@ github.com/henrywhitaker3/probes v1.0.1 h1:HIk85wrQtpJJFIIyl3+txdh9ETmhoj1TKIR7/
 github.com/henrywhitaker3/probes v1.0.1/go.mod h1:3MCZg3hltGuyUFFNb2mhck/7RuanDd9ndlHpm0CpEYQ=
 github.com/henrywhitaker3/rueidisleader v1.0.6 h1:+FPXSY68rk8g8lJpuodKK5QQYd/uNAjNsclalzj2tds=
 github.com/henrywhitaker3/rueidisleader v1.0.6/go.mod h1:C/1B1tHK2IM/j4XEaTWbEe4XrHyUUNu78vbs1Xuff/M=
-github.com/henrywhitaker3/windowframe v1.4.0 h1:gh60t5gY9dhOlcLXCPeDqVoqjQ9K4xslKZUZR3XpGj0=
-github.com/henrywhitaker3/windowframe v1.4.0/go.mod h1:G8z8Yfi/+OIDHHaI/p3Mr6LEKBDNZYqg0WZ5sPexRms=
+github.com/henrywhitaker3/windowframe v1.5.0 h1:RjQ1yQMbMgGJaaRnQ0wnEDSoVQh3HPCQWYM0bi3jrwc=
+github.com/henrywhitaker3/windowframe v1.5.0/go.mod h1:eFOjXo7+GeHwG9hXS8i/RiIlpRB5i/9mH5XkO/RWVl8=
 github.com/hibiken/asynq v0.25.1 h1:phj028N0nm15n8O2ims+IvJ2gz4k2auvermngh9JhTw=
 github.com/hibiken/asynq v0.25.1/go.mod h1:pazWNOLBu0FEynQRBvHA26qdIKRSmfdIfUm4HdsLmXg=
 github.com/hibiken/asynq/x v0.0.0-20250401060612-c327bc40a28e h1:Iok0j6qdmvZCzwy64V+flwtAQW4e45hcAHywTZnEaTw=

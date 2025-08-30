@@ -2,7 +2,7 @@ package migrate
 
 import (
 	"github.com/henrywhitaker3/boiler"
-	"github.com/henrywhitaker3/go-template/internal/postgres"
+	"github.com/henrywhitaker3/windowframe/database/postgres"
 	"github.com/spf13/cobra"
 )
 
