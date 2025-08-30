@@ -10,7 +10,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/http/handlers/users"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	iusers "github.com/henrywhitaker3/go-template/internal/users"
-	"github.com/henrywhitaker3/go-template/internal/uuid"
+	"github.com/henrywhitaker3/windowframe/uuid"
 	"github.com/stretchr/testify/require"
 )
 
