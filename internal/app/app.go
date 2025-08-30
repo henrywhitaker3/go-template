@@ -264,7 +264,7 @@ func RegisterQueue(b *boiler.Boiler) (*queue.Producer, error) {
 
 	prod := queue.NewProducer(queue.ProducerOpts{
 		Producer: driver,
-		Observer: queue.NewObserver(queue.ObserverOpts{
+		Observer: queue.NewProducerObserver(queue.ProducerObserverOpts{
 			Logger: slog.Default(),
 			Reg:    met.Registry,
 		}),
@@ -338,23 +338,10 @@ const (
 func RegisterDefaultQueueWorker(
 	b *boiler.Boiler,
 ) (*queue.Consumer, error) {
-	met, err := boiler.Resolve[*metrics.Metrics](b)
+	cons, err := queueConsumer(b, queue.Queue("default"))
 	if err != nil {
 		return nil, err
 	}
-
-	driver, err := queueConsumer(b, queue.Queue("default"))
-	if err != nil {
-		return nil, err
-	}
-
-	cons := queue.NewConsumer(queue.ConsumerOpts{
-		Consumer: driver,
-		Observer: queue.NewObserver(queue.ObserverOpts{
-			Logger: slog.Default(),
-			Reg:    met.Registry,
-		}),
-	})
 	b.RegisterShutdown(func(b *boiler.Boiler) error {
 		return cons.Close(b.Context())
 	})
@@ -362,20 +349,37 @@ func RegisterDefaultQueueWorker(
 	return cons, nil
 }
 
-func queueConsumer(b *boiler.Boiler, queueName queue.Queue) (queue.QueueConsumer, error) {
+func queueConsumer(b *boiler.Boiler, queueName queue.Queue) (*queue.Consumer, error) {
 	conf, err := boiler.Resolve[*config.Config](b)
 	if err != nil {
 		return nil, err
 	}
 
+	var driver queue.QueueConsumer
 	switch conf.Queue.Driver {
 	case "redis":
-		return asynqConsumer(b, queueName)
+		driver, err = asynqConsumer(b, queueName)
 	case "nats":
-		return natsConsumer(b, queueName)
+		driver, err = natsConsumer(b, queueName)
 	default:
 		return nil, fmt.Errorf("invalid queue driver %s", conf.Queue.Driver)
 	}
+	if err != nil {
+		return nil, err
+	}
+
+	met, err := boiler.Resolve[*metrics.Metrics](b)
+	if err != nil {
+		return nil, err
+	}
+
+	return queue.NewConsumer(queue.ConsumerOpts{
+		Consumer: driver,
+		Observer: queue.NewConsumerObserver(queue.ConsumerObserverOpts{
+			Logger: slog.With("queue", queueName),
+			Reg:    met.Registry,
+		}),
+	}), nil
 }
 
 func asynqConsumer(b *boiler.Boiler, queueName queue.Queue) (*asynq.Consumer, error) {
