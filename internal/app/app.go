@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/henrywhitaker3/boiler"
 	gocache "github.com/henrywhitaker3/go-cache"
@@ -21,8 +22,8 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/redis"
 	"github.com/henrywhitaker3/go-template/internal/storage"
 	"github.com/henrywhitaker3/go-template/internal/users"
-	"github.com/henrywhitaker3/go-template/internal/workers"
 	"github.com/henrywhitaker3/probes"
+	"github.com/henrywhitaker3/windowframe/workers"
 	"github.com/redis/rueidis"
 	"github.com/thanos-io/objstore"
 )
@@ -227,11 +228,26 @@ func RegisterQueue(b *boiler.Boiler) (*queue.Publisher, error) {
 }
 
 func RegisterRunner(b *boiler.Boiler) (*workers.Runner, error) {
+	conf, err := boiler.Resolve[*config.Config](b)
+	if err != nil {
+		return nil, err
+	}
 	redis, err := boiler.Resolve[rueidis.Client](b)
 	if err != nil {
 		return nil, err
 	}
-	work, err := workers.NewRunner(b.Context(), redis)
+	met, err := boiler.Resolve[*metrics.Metrics](b)
+	if err != nil {
+		return nil, err
+	}
+	work, err := workers.NewRunner(b.Context(), workers.RunnerOpts{
+		Redis:  redis,
+		Logger: slog.Default(),
+		Monitor: workers.MonitorOpts{
+			Namespace: strings.ToLower(strings.ReplaceAll(conf.Name, " ", "_")),
+		},
+		Registerer: met.Registry,
+	})
 	if err != nil {
 		return nil, err
 	}

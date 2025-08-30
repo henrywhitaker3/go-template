@@ -7,7 +7,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/http"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
-	"github.com/henrywhitaker3/go-template/internal/workers"
+	"github.com/henrywhitaker3/windowframe/workers"
 	"github.com/spf13/cobra"
 )
 
