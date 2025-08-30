@@ -10,6 +10,7 @@ import (
 
 	"github.com/henrywhitaker3/boiler"
 	gocache "github.com/henrywhitaker3/go-cache"
+	"github.com/henrywhitaker3/go-template/database/migrations"
 	"github.com/henrywhitaker3/go-template/database/queries"
 	"github.com/henrywhitaker3/go-template/internal/config"
 	ohttp "github.com/henrywhitaker3/go-template/internal/http"
@@ -96,7 +97,7 @@ func RegisterMigrator(b *boiler.Boiler) (*postgres.Migrator, error) {
 		return nil, err
 	}
 
-	return postgres.NewMigrator(db)
+	return postgres.NewMigrator(migrations.Migrations, db)
 }
 
 func RegisterRedis(b *boiler.Boiler) (rueidis.Client, error) {

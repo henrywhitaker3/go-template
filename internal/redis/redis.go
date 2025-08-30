@@ -1,3 +1,4 @@
+// Package redis
 package redis
 
 import (

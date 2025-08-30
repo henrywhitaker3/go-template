@@ -241,8 +241,8 @@ github.com/henrywhitaker3/probes v1.0.1 h1:HIk85wrQtpJJFIIyl3+txdh9ETmhoj1TKIR7/
 github.com/henrywhitaker3/probes v1.0.1/go.mod h1:3MCZg3hltGuyUFFNb2mhck/7RuanDd9ndlHpm0CpEYQ=
 github.com/henrywhitaker3/rueidisleader v1.0.6 h1:+FPXSY68rk8g8lJpuodKK5QQYd/uNAjNsclalzj2tds=
 github.com/henrywhitaker3/rueidisleader v1.0.6/go.mod h1:C/1B1tHK2IM/j4XEaTWbEe4XrHyUUNu78vbs1Xuff/M=
-github.com/henrywhitaker3/windowframe v1.5.0 h1:RjQ1yQMbMgGJaaRnQ0wnEDSoVQh3HPCQWYM0bi3jrwc=
-github.com/henrywhitaker3/windowframe v1.5.0/go.mod h1:eFOjXo7+GeHwG9hXS8i/RiIlpRB5i/9mH5XkO/RWVl8=
+github.com/henrywhitaker3/windowframe v1.5.5 h1:V2Q90LOfPTIGM0pw3WHWg/XHO2nSkeaqaZw7RuVEsvg=
+github.com/henrywhitaker3/windowframe v1.5.5/go.mod h1:ASxRxqqSfGV050YZG3rK8T4Mvj3vE3QrRp1OpC4iIck=
 github.com/hibiken/asynq v0.25.1 h1:phj028N0nm15n8O2ims+IvJ2gz4k2auvermngh9JhTw=
 github.com/hibiken/asynq v0.25.1/go.mod h1:pazWNOLBu0FEynQRBvHA26qdIKRSmfdIfUm4HdsLmXg=
 github.com/hibiken/asynq/x v0.0.0-20250401060612-c327bc40a28e h1:Iok0j6qdmvZCzwy64V+flwtAQW4e45hcAHywTZnEaTw=
