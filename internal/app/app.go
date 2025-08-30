@@ -18,12 +18,12 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	iprobes "github.com/henrywhitaker3/go-template/internal/probes"
 	"github.com/henrywhitaker3/go-template/internal/queue"
-	"github.com/henrywhitaker3/go-template/internal/storage"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/probes"
 	"github.com/henrywhitaker3/windowframe/crypto"
 	"github.com/henrywhitaker3/windowframe/database/postgres"
 	"github.com/henrywhitaker3/windowframe/redis"
+	"github.com/henrywhitaker3/windowframe/storage"
 	"github.com/henrywhitaker3/windowframe/workers"
 	"github.com/redis/rueidis"
 	"github.com/thanos-io/objstore"
@@ -287,7 +287,16 @@ func RegisterStorage(b *boiler.Boiler) (objstore.Bucket, error) {
 	if err != nil {
 		return nil, err
 	}
-	return storage.New(conf.Storage)
+	var backend storage.Backend
+	switch conf.Storage.Type {
+	case "s3":
+		backend = storage.S3
+	case "filesystem":
+		backend = storage.Filesystem
+	default:
+		return nil, fmt.Errorf("invalid storage type %s", conf.Storage.Type)
+	}
+	return storage.New(backend, conf.Storage.Config)
 }
 
 const (

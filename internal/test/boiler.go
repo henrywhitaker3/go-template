@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/config"
 	pg "github.com/henrywhitaker3/windowframe/database/postgres"
 	wlog "github.com/henrywhitaker3/windowframe/log"
+	"github.com/henrywhitaker3/windowframe/test"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/log"
@@ -101,18 +101,21 @@ func newBoiler(t *testing.T) *boiler.Boiler {
 
 	conf.Environment = "testing"
 
+	t.Log("spinning up garage s3")
+	s3Conn, cancelS3 := test.S3(t)
+
 	conf.Storage.Enabled = ptr(true)
 	conf.Storage.Type = "s3"
 	conf.Storage.Config = map[string]any{
-		"region":     "test",
-		"bucket":     strings.ToLower(Letters(10)),
-		"access_key": Sentence(3),
-		"secret_key": Sentence(3),
+		"endpoint":   fmt.Sprintf("127.0.0.1:%d", s3Conn.Port),
+		"region":     "garage",
+		"bucket":     s3Conn.Bucket,
+		"access_key": s3Conn.AccessKeyID,
+		"secret_key": s3Conn.SecretAccessKey,
 		"insecure":   true,
 	}
 
 	t.Log("spinning up minio")
-	minio(t, &conf.Storage, ctx)
 
 	require.Nil(t, boiler.Register[*config.Config](b, func(*boiler.Boiler) (*config.Config, error) {
 		return conf, nil
@@ -132,6 +135,7 @@ func newBoiler(t *testing.T) *boiler.Boiler {
 	b.RegisterShutdown(func(*boiler.Boiler) error {
 		redisCont.Terminate(context.Background())
 		pgCont.Terminate(context.Background())
+		cancelS3()
 		cancel()
 		return nil
 	})
