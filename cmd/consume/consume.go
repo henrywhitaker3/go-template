@@ -38,11 +38,6 @@ func New(b *boiler.Boiler) *cobra.Command {
 				return err
 			}
 
-			go func() {
-				<-cmd.Context().Done()
-				consumer.Close(context.Background())
-			}()
-
 			consumer.RegisterMetrics(metricsServer.Registry)
 
 			return consumer.Consume(cmd.Context())
