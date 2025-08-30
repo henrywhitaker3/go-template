@@ -245,7 +245,7 @@ func RegisterQueue(b *boiler.Boiler) (*queue.Producer, error) {
 	var driver queue.QueueProducer
 	switch conf.Queue.Driver {
 	case "redis":
-		driver, err = asynq.NewPublisher(asynq.PublisherOpts{
+		driver, err = asynq.NewProducer(asynq.ProducerOpts{
 			Redis: asynq.RedisOpts{
 				Addr:        conf.Redis.Addr,
 				Password:    conf.Redis.Password,

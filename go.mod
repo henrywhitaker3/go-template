@@ -16,7 +16,7 @@ require (
 	github.com/henrywhitaker3/ctxgen v1.0.1
 	github.com/henrywhitaker3/go-cache v1.1.0
 	github.com/henrywhitaker3/probes v1.0.1
-	github.com/henrywhitaker3/windowframe v1.8.0
+	github.com/henrywhitaker3/windowframe v1.8.2
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/labstack/echo-contrib v0.17.4
 	github.com/labstack/echo/v4 v4.13.4
