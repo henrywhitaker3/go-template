@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -10,8 +9,7 @@ import (
 	"time"
 
 	"github.com/grafana/pyroscope-go"
-	"github.com/sethvargo/go-envconfig"
-	"gopkg.in/yaml.v3"
+	wconf "github.com/henrywhitaker3/windowframe/config"
 )
 
 type LogLevel string
@@ -207,26 +205,22 @@ type Config struct {
 }
 
 func Load(path string) (*Config, error) {
+	extractors := []wconf.Extractor[Config]{}
 	file, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("read config file: %w", err)
+		}
+	} else {
+		extractors = append(extractors, wconf.NewYamlExtractor[Config](file))
 	}
-
-	var conf Config
-	if err := yaml.Unmarshal(file, &conf); err != nil {
-		return nil, err
-	}
-
-	if err := envconfig.Process(context.Background(), &conf); err != nil {
-		return nil, err
-	}
-
+	extractors = append(extractors, wconf.NewEnvExtractor[Config]())
+	conf, err := wconf.NewParser[Config]().WithExtractors(extractors...).Parse()
 	conf.setDefaults()
 	if err := conf.validate(); err != nil {
 		return nil, err
 	}
-
-	return &conf, nil
+	return &conf, err
 }
 
 func (c *Config) validate() error {
