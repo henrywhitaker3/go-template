@@ -15,15 +15,6 @@ import (
 )
 
 var (
-	WorkerExecutions = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "worker_executions_count",
-		Help: "The number of worker executions completed",
-	}, []string{"name"})
-	WorkerExecutionErrors = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "worker_execution_errors_count",
-		Help: "The number of worker execution errors",
-	}, []string{"name"})
-
 	Logins = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "logins_count",
 		Help: "The number of logins",
@@ -56,8 +47,6 @@ var (
 	}, []string{"task"})
 
 	ApiMetrics = []prometheus.Collector{
-		WorkerExecutions,
-		WorkerExecutionErrors,
 		Logins,
 		Registrations,
 		QueueTasksPushed,
