@@ -3,7 +3,7 @@ package secrets
 import (
 	"fmt"
 
-	"github.com/henrywhitaker3/go-template/internal/crypto"
+	"github.com/henrywhitaker3/windowframe/crypto"
 	"github.com/spf13/cobra"
 )
 

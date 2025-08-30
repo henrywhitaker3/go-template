@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/henrywhitaker3/go-template/database/queries"
-	"github.com/henrywhitaker3/go-template/internal/crypto"
+	"github.com/henrywhitaker3/windowframe/crypto"
 	"github.com/henrywhitaker3/windowframe/uuid"
 )
 
