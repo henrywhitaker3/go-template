@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -171,10 +172,16 @@ type Encryption struct {
 	Secret  string `yaml:"secret"  env:"SECRET, overwrite"`
 }
 
+type Nats struct {
+	Enabled *bool  `yaml:"enabled" env:"ENABLED, overwrite, default=false"`
+	URL     string `yaml:"url"     env:"URL, overwrite"`
+}
+
 type Queue struct {
-	Enabled     *bool `yaml:"enabled"     env:"ENABLED, overwrite, default=true"`
-	DB          int   `yaml:"db"          env:"DB, overwrite, default=5"`
-	Concurrency *int  `yaml:"concurrency" env:"CONCURRENCY, overwrite"`
+	Enabled     *bool  `yaml:"enabled"     env:"ENABLED, overwrite, default=true"`
+	Driver      string `yaml:"driver"      env:"DRIVER, overwrite, default=redis"`
+	DB          int    `yaml:"db"          env:"DB, overwrite, default=5"`
+	Concurrency *int   `yaml:"concurrency" env:"CONCURRENCY, overwrite"`
 }
 
 type Runner struct {
@@ -194,6 +201,7 @@ type Config struct {
 	LogLevel LogLevel `yaml:"log_level" env:"LOG_LEVEL, overwrite, default=error"`
 	Database Postgres `yaml:"database"  env:", prefix=DB_"`
 	Redis    Redis    `yaml:"redis"     env:", prefix=REDIS_"`
+	Nats     Nats     `yaml:"nats"      env:", prefix=NATS_"`
 
 	Probes Probes `yaml:"probes" env:", prefix=PROBES_"`
 	Http   Http   `yaml:"http"   env:", prefix=HTTP_"`
@@ -250,6 +258,9 @@ func (c *Config) validate() error {
 	}
 	if !(*c.Redis.Enabled) && *c.Runner.Enabled {
 		return errors.New("runner cannot be enabled without redis")
+	}
+	if !slices.Contains([]string{"redis", "nats"}, c.Queue.Driver) {
+		return fmt.Errorf("invalid queue driver %s", c.Queue.Driver)
 	}
 	return nil
 }

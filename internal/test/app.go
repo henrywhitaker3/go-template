@@ -14,8 +14,8 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/app"
 	"github.com/henrywhitaker3/go-template/internal/config"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
-	"github.com/henrywhitaker3/go-template/internal/queue"
 	"github.com/henrywhitaker3/go-template/internal/users"
+	"github.com/henrywhitaker3/windowframe/queue"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/log"
@@ -108,9 +108,9 @@ func minio(t *testing.T, conf *config.Storage, ctx context.Context) {
 }
 
 func RunQueues(t *testing.T, b *boiler.Boiler, ctx context.Context) {
-	def, err := boiler.ResolveNamed[*queue.Worker](b, app.DefaultQueue)
+	def, err := boiler.ResolveNamed[*queue.Consumer](b, app.DefaultQueue)
 	require.Nil(t, err)
-	go def.Consume()
+	go def.Consume(context.Background())
 	time.Sleep(time.Millisecond * 500)
 }
 

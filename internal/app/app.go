@@ -17,11 +17,13 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	iprobes "github.com/henrywhitaker3/go-template/internal/probes"
-	"github.com/henrywhitaker3/go-template/internal/queue"
 	"github.com/henrywhitaker3/go-template/internal/users"
 	"github.com/henrywhitaker3/probes"
 	"github.com/henrywhitaker3/windowframe/crypto"
 	"github.com/henrywhitaker3/windowframe/database/postgres"
+	"github.com/henrywhitaker3/windowframe/queue"
+	"github.com/henrywhitaker3/windowframe/queue/asynq"
+	"github.com/henrywhitaker3/windowframe/queue/nats"
 	"github.com/henrywhitaker3/windowframe/redis"
 	"github.com/henrywhitaker3/windowframe/storage"
 	"github.com/henrywhitaker3/windowframe/workers"
@@ -230,19 +232,45 @@ func RegisterMetrics(b *boiler.Boiler) (*metrics.Metrics, error) {
 	return metrics.New(conf.Telemetry.Metrics.Port), nil
 }
 
-func RegisterQueue(b *boiler.Boiler) (*queue.Publisher, error) {
+func RegisterQueue(b *boiler.Boiler) (*queue.Producer, error) {
 	conf, err := boiler.Resolve[*config.Config](b)
 	if err != nil {
 		return nil, err
 	}
-	return queue.NewPublisher(queue.PublisherOpts{
-		Redis: queue.RedisOpts{
-			Addr:        conf.Redis.Addr,
-			Password:    conf.Redis.Password,
-			DB:          conf.Queue.DB,
-			OtelEnabled: *conf.Telemetry.Tracing.Enabled,
-		},
+	met, err := boiler.Resolve[*metrics.Metrics](b)
+	if err != nil {
+		return nil, err
+	}
+
+	var driver queue.QueueProducer
+	switch conf.Queue.Driver {
+	case "redis":
+		driver, err = asynq.NewPublisher(asynq.PublisherOpts{
+			Redis: asynq.RedisOpts{
+				Addr:        conf.Redis.Addr,
+				Password:    conf.Redis.Password,
+				DB:          conf.Queue.DB,
+				OtelEnabled: *conf.Telemetry.Tracing.Enabled,
+			},
+		})
+	case "nats":
+		driver, err = nats.NewProducer(nats.ProducerOpts{
+			URL: conf.Nats.URL,
+		})
+	}
+	if err != nil {
+		return nil, fmt.Errorf("instantiate queue driver: %w", err)
+	}
+
+	prod := queue.NewProducer(queue.ProducerOpts{
+		Producer: driver,
+		Observer: queue.NewObserver(queue.ObserverOpts{
+			Logger: slog.Default(),
+			Reg:    met.Registry,
+		}),
 	})
+
+	return prod, nil
 }
 
 func RegisterRunner(b *boiler.Boiler) (*workers.Runner, error) {
@@ -305,23 +333,80 @@ const (
 
 func RegisterDefaultQueueWorker(
 	b *boiler.Boiler,
-) (*queue.Worker, error) {
+) (*queue.Consumer, error) {
+	met, err := boiler.Resolve[*metrics.Metrics](b)
+	if err != nil {
+		return nil, err
+	}
+
+	driver, err := queueConsumer(b, queue.Queue("default"))
+
+	return queue.NewConsumer(queue.ConsumerOpts{
+		Consumer: driver,
+		Observer: queue.NewObserver(queue.ObserverOpts{
+			Logger: slog.Default(),
+			Reg:    met.Registry,
+		}),
+	}), nil
+}
+
+func queueConsumer(b *boiler.Boiler, queueName queue.Queue) (queue.QueueConsumer, error) {
 	conf, err := boiler.Resolve[*config.Config](b)
 	if err != nil {
 		return nil, err
 	}
+
+	switch conf.Queue.Driver {
+	case "redis":
+		return asynqConsumer(b, queueName)
+	case "nats":
+		return natsConsumer(b, queueName)
+	default:
+		return nil, fmt.Errorf("invalid queue driver %s", conf.Queue.Driver)
+	}
+}
+
+func asynqConsumer(b *boiler.Boiler, queueName queue.Queue) (*asynq.Consumer, error) {
+	conf, err := boiler.Resolve[*config.Config](b)
+	if err != nil {
+		return nil, err
+	}
+
 	conc := 0
 	if conf.Queue.Concurrency != nil {
 		conc = *conf.Queue.Concurrency
 	}
-	return queue.NewWorker(b.Context(), queue.ServerOpts{
-		Redis: queue.RedisOpts{
+	prod, err := asynq.NewConsumer(b.Context(), asynq.ConsumerOpts{
+		Queues:      []queue.Queue{queueName},
+		Logger:      slog.Default(),
+		Concurrency: conc,
+		Redis: asynq.RedisOpts{
 			Addr:        conf.Redis.Addr,
 			Password:    conf.Redis.Password,
 			DB:          conf.Queue.DB,
 			OtelEnabled: *conf.Telemetry.Tracing.Enabled,
 		},
-		Queues:      []queue.Queue{queue.DefaultQueue},
-		Concurrency: conc,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("instantiate asynq consumer: %w", err)
+	}
+
+	return prod, nil
+}
+
+func natsConsumer(b *boiler.Boiler, queueName queue.Queue) (*nats.Consumer, error) {
+	conf, err := boiler.Resolve[*config.Config](b)
+	if err != nil {
+		return nil, err
+	}
+
+	prod, err := nats.NewConsumer(nats.ConsumerOpts{
+		URL:        conf.Nats.URL,
+		StreamName: string(queueName),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("instantiate nats consumer: %w", err)
+	}
+
+	return prod, nil
 }

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/henrywhitaker3/go-template/internal/tracing"
+	"github.com/henrywhitaker3/windowframe/tracing"
 	"github.com/labstack/echo/v4"
 )
 
