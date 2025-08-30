@@ -248,8 +248,6 @@ github.com/henrywhitaker3/windowframe v1.8.0 h1:DSrWNucLrsW1GU57uKmjq6PsoNKEXOVQ
 github.com/henrywhitaker3/windowframe v1.8.0/go.mod h1:XChxIbWa3+vX4vkuENj7td//N4PM1k/JyronDnY1Zq8=
 github.com/hibiken/asynq v0.25.1 h1:phj028N0nm15n8O2ims+IvJ2gz4k2auvermngh9JhTw=
 github.com/hibiken/asynq v0.25.1/go.mod h1:pazWNOLBu0FEynQRBvHA26qdIKRSmfdIfUm4HdsLmXg=
-github.com/hibiken/asynq/x v0.0.0-20250401060612-c327bc40a28e h1:Iok0j6qdmvZCzwy64V+flwtAQW4e45hcAHywTZnEaTw=
-github.com/hibiken/asynq/x v0.0.0-20250401060612-c327bc40a28e/go.mod h1:hhpStehaxSGg3ib9wJXzw5AXY1YS6lQ9BNavAgPbIhE=
 github.com/huaweicloud/huaweicloud-sdk-go-obs v3.25.4+incompatible h1:yNjwdvn9fwuN6Ouxr0xHM0cVu03YMUWUyFmu2van/Yc=
 github.com/huaweicloud/huaweicloud-sdk-go-obs v3.25.4+incompatible/go.mod h1:l7VUhRbTKCzdOacdT4oWCwATKyvZqUOlOqr0Ous3k4s=
 github.com/iancoleman/orderedmap v0.3.0 h1:5cbR2grmZR/DiVt+VJopEhtVs9YGInGIxAoMJn+Ichc=
