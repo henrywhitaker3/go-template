@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/henrywhitaker3/go-template/internal/config"
-	"github.com/henrywhitaker3/go-template/internal/crypto"
+	"github.com/henrywhitaker3/windowframe/crypto"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
