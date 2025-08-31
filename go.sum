@@ -238,8 +238,8 @@ github.com/henrywhitaker3/ctxgen v1.0.1 h1:T1tsyUKS4ymBkqP9KBrVDh5fskzkdm2zTfLH0
 github.com/henrywhitaker3/ctxgen v1.0.1/go.mod h1:Q9fBma6LqFfEqJbltrc1Icdp9YUA5M3UVcz7tqGfPLc=
 github.com/henrywhitaker3/go-cache v1.1.0 h1:JsnhWHYxpdkbDbozkNXA7R3tXd3jM3sl6IK+4e/h8eY=
 github.com/henrywhitaker3/go-cache v1.1.0/go.mod h1:nLCM7xysc4jpZ5lRIr2EZaLIFHUnIaeLGBhEQHjTrTM=
-github.com/henrywhitaker3/probes v1.0.1 h1:HIk85wrQtpJJFIIyl3+txdh9ETmhoj1TKIR7/7R+Mms=
-github.com/henrywhitaker3/probes v1.0.1/go.mod h1:3MCZg3hltGuyUFFNb2mhck/7RuanDd9ndlHpm0CpEYQ=
+github.com/henrywhitaker3/probes v1.0.2 h1:NjW/vjQ+ghQy8yJm3x8Cv0HeSkJsgbCl4OeYD+ej3q4=
+github.com/henrywhitaker3/probes v1.0.2/go.mod h1:S3oJ1yMCPPAiSZ9nedyxkCviV59tv7ym7WTr5lG+sq4=
 github.com/henrywhitaker3/rueidisleader v1.0.6 h1:+FPXSY68rk8g8lJpuodKK5QQYd/uNAjNsclalzj2tds=
 github.com/henrywhitaker3/rueidisleader v1.0.6/go.mod h1:C/1B1tHK2IM/j4XEaTWbEe4XrHyUUNu78vbs1Xuff/M=
 github.com/henrywhitaker3/windowframe v1.8.8 h1:9bPL+ro/LqFCwB8fDaqg/77S9NCYA3eUBoKKcK8RlmQ=
