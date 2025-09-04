@@ -20,8 +20,8 @@ import (
 	"github.com/henrywhitaker3/go-template/internal/http/validation"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
-	"github.com/henrywhitaker3/windowframe/tracing"
 	iusers "github.com/henrywhitaker3/go-template/internal/users"
+	"github.com/henrywhitaker3/windowframe/tracing"
 	"github.com/henrywhitaker3/windowframe/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
@@ -247,6 +247,22 @@ func buildSchema[Req any, Resp any](h *Http, handler Handler[Req, Resp]) error {
 	if handler.Metadata().Description != "" {
 		opctx.SetDescription(handler.Metadata().Description)
 	}
+	opctx.AddRespStructure(
+		map[string]string{},
+		openapi.WithHTTPStatus(http.StatusUnprocessableEntity),
+	)
+	opctx.AddRespStructure(
+		newError("not found"),
+		openapi.WithHTTPStatus(http.StatusNotFound),
+	)
+	opctx.AddRespStructure(
+		newError("unauthorised"),
+		openapi.WithHTTPStatus(http.StatusUnauthorized),
+	)
+	opctx.AddRespStructure(
+		newError("forbidden"),
+		openapi.WithHTTPStatus(http.StatusForbidden),
+	)
 
 	return h.spec.AddOperation(opctx)
 }
