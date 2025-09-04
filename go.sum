@@ -238,8 +238,8 @@ github.com/henrywhitaker3/ctxgen v1.0.1 h1:T1tsyUKS4ymBkqP9KBrVDh5fskzkdm2zTfLH0
 github.com/henrywhitaker3/ctxgen v1.0.1/go.mod h1:Q9fBma6LqFfEqJbltrc1Icdp9YUA5M3UVcz7tqGfPLc=
 github.com/henrywhitaker3/flow v1.11.1 h1:qe/N00DlbhT0883CCwZl+4UgSqtVcZl5yy8u1ulV7MI=
 github.com/henrywhitaker3/flow v1.11.1/go.mod h1:CGl6DB0r6jlGDZsScgHTMvJKIJUmkEOX1JtC/bk5gVY=
-github.com/henrywhitaker3/go-cache v1.1.0 h1:JsnhWHYxpdkbDbozkNXA7R3tXd3jM3sl6IK+4e/h8eY=
-github.com/henrywhitaker3/go-cache v1.1.0/go.mod h1:nLCM7xysc4jpZ5lRIr2EZaLIFHUnIaeLGBhEQHjTrTM=
+github.com/henrywhitaker3/go-cache v1.1.1 h1:1VTz4owmd424KzndsIbAibxU4ptyCR52MKb+gUQljI0=
+github.com/henrywhitaker3/go-cache v1.1.1/go.mod h1:qOOSNfk8P3Jmc++bgMQVNSIlCezSe+AGRO1mhnDKPFg=
 github.com/henrywhitaker3/probes v1.0.2 h1:NjW/vjQ+ghQy8yJm3x8Cv0HeSkJsgbCl4OeYD+ej3q4=
 github.com/henrywhitaker3/probes v1.0.2/go.mod h1:S3oJ1yMCPPAiSZ9nedyxkCviV59tv7ym7WTr5lG+sq4=
 github.com/henrywhitaker3/rueidisleader v1.0.7 h1:rTqvzcd+M4TnWYC2/aGk1cmoVHAwy5VUviPQ91qP4tY=
