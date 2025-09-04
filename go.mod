@@ -16,7 +16,7 @@ require (
 	github.com/henrywhitaker3/ctxgen v1.0.1
 	github.com/henrywhitaker3/go-cache v1.1.0
 	github.com/henrywhitaker3/probes v1.0.2
-	github.com/henrywhitaker3/windowframe v1.8.8
+	github.com/henrywhitaker3/windowframe v1.9.3
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/labstack/echo-contrib v0.17.4
 	github.com/labstack/echo/v4 v4.13.4
@@ -75,7 +75,7 @@ require (
 	github.com/exaring/otelpgx v0.9.3 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
-	github.com/go-co-op/gocron/v2 v2.16.4 // indirect
+	github.com/go-co-op/gocron/v2 v2.16.5 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -96,7 +96,8 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/henrywhitaker3/rueidisleader v1.0.6 // indirect
+	github.com/henrywhitaker3/flow v1.11.1 // indirect
+	github.com/henrywhitaker3/rueidisleader v1.0.7 // indirect
 	github.com/hibiken/asynq v0.25.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -139,9 +140,9 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.65.0 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
-	github.com/redis/go-redis/extra/rediscmd/v9 v9.12.1 // indirect
-	github.com/redis/go-redis/extra/redisotel/v9 v9.12.1 // indirect
-	github.com/redis/go-redis/v9 v9.12.1 // indirect
+	github.com/redis/go-redis/extra/rediscmd/v9 v9.13.0 // indirect
+	github.com/redis/go-redis/extra/redisotel/v9 v9.13.0 // indirect
+	github.com/redis/go-redis/v9 v9.13.0 // indirect
 	github.com/redis/rueidis/rueidisotel v1.0.64 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
@@ -149,7 +150,7 @@ require (
 	github.com/shirou/gopsutil/v4 v4.25.5 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
-	github.com/spf13/pflag v1.0.7 // indirect
+	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/swaggest/refl v1.4.0 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
 	github.com/swaggo/swag v1.8.1 // indirect
