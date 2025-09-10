@@ -6,8 +6,8 @@ require (
 	github.com/KimMachineGun/automemlimit v0.7.4
 	github.com/brianvoe/gofakeit/v7 v7.5.1
 	github.com/docker/go-connections v0.6.0
-	github.com/getsentry/sentry-go v0.35.1
-	github.com/getsentry/sentry-go/echo v0.35.1
+	github.com/getsentry/sentry-go v0.35.2
+	github.com/getsentry/sentry-go/echo v0.35.2
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
