@@ -3,9 +3,10 @@ package users
 import (
 	"net/http"
 
-	"github.com/henrywhitaker3/go-template/internal/http/common"
+	"github.com/henrywhitaker3/ctxgen"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
 	"github.com/henrywhitaker3/go-template/internal/users"
+	"github.com/henrywhitaker3/windowframe/http/common"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,7 +18,7 @@ func NewMe() *MeHandler {
 
 func (m *MeHandler) Handler() common.Handler[any, users.User] {
 	return func(c echo.Context, _ any) (*users.User, error) {
-		user, _ := common.GetUser(c.Request().Context())
+		user, _ := ctxgen.ValueOk[*users.User](c.Request().Context(), "user")
 		return user, nil
 	}
 }

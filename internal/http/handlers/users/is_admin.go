@@ -4,10 +4,11 @@ import (
 	"net/http"
 
 	"github.com/henrywhitaker3/boiler"
-	"github.com/henrywhitaker3/go-template/internal/http/common"
+	"github.com/henrywhitaker3/ctxgen"
 	"github.com/henrywhitaker3/go-template/internal/http/middleware"
-	"github.com/henrywhitaker3/windowframe/tracing"
 	"github.com/henrywhitaker3/go-template/internal/users"
+	"github.com/henrywhitaker3/windowframe/http/common"
+	"github.com/henrywhitaker3/windowframe/tracing"
 	"github.com/labstack/echo/v4"
 )
 
@@ -26,7 +27,7 @@ func (i *IsAdminHandler) Handler() common.Handler[any, any] {
 		ctx, span := tracing.NewSpan(c.Request().Context(), "IsAdmin")
 		defer span.End()
 
-		user, ok := common.GetUser(ctx)
+		user, ok := ctxgen.ValueOk[*users.User](ctx, "user")
 		if !ok {
 			return nil, common.ErrUnauth
 		}

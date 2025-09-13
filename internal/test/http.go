@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/henrywhitaker3/boiler"
-	ohttp "github.com/henrywhitaker3/go-template/internal/http"
+	whttp "github.com/henrywhitaker3/windowframe/http"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 )
@@ -37,7 +37,7 @@ func Get(
 		}
 	}
 
-	srv, err := boiler.Resolve[*ohttp.Http](b)
+	srv, err := boiler.Resolve[*whttp.HTTP](b)
 	require.Nil(t, err)
 
 	srv.ServeHTTP(rec, req)
@@ -74,7 +74,7 @@ func Post(
 		}
 	}
 
-	srv, err := boiler.Resolve[*ohttp.Http](b)
+	srv, err := boiler.Resolve[*whttp.HTTP](b)
 	require.Nil(t, err)
 
 	rec := httptest.NewRecorder()
@@ -112,7 +112,7 @@ func Put(
 		}
 	}
 
-	srv, err := boiler.Resolve[*ohttp.Http](b)
+	srv, err := boiler.Resolve[*whttp.HTTP](b)
 	require.Nil(t, err)
 
 	rec := httptest.NewRecorder()
@@ -150,7 +150,7 @@ func Patch(
 		}
 	}
 
-	srv, err := boiler.Resolve[*ohttp.Http](b)
+	srv, err := boiler.Resolve[*whttp.HTTP](b)
 	require.Nil(t, err)
 
 	rec := httptest.NewRecorder()
@@ -188,7 +188,7 @@ func Delete(
 		}
 	}
 
-	srv, err := boiler.Resolve[*ohttp.Http](b)
+	srv, err := boiler.Resolve[*whttp.HTTP](b)
 	require.Nil(t, err)
 
 	rec := httptest.NewRecorder()

@@ -21,6 +21,7 @@ import (
 	"github.com/henrywhitaker3/probes"
 	"github.com/henrywhitaker3/windowframe/crypto"
 	"github.com/henrywhitaker3/windowframe/database/postgres"
+	whttp "github.com/henrywhitaker3/windowframe/http"
 	"github.com/henrywhitaker3/windowframe/queue"
 	"github.com/henrywhitaker3/windowframe/queue/asynq"
 	"github.com/henrywhitaker3/windowframe/queue/nats"
@@ -165,7 +166,7 @@ func RegisterJWT(b *boiler.Boiler) (*jwt.Jwt, error) {
 	return jwt.New(conf.Jwt.Secret), nil
 }
 
-func RegisterHTTP(b *boiler.Boiler) (*ohttp.Http, error) {
+func RegisterHTTP(b *boiler.Boiler) (*whttp.HTTP, error) {
 	return ohttp.New(b), nil
 }
 

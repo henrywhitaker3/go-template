@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/henrywhitaker3/boiler"
-	ohttp "github.com/henrywhitaker3/go-template/internal/http"
-	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/test"
 	"github.com/henrywhitaker3/go-template/internal/users"
+	whttp "github.com/henrywhitaker3/windowframe/http"
+	"github.com/henrywhitaker3/windowframe/http/common"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 )
@@ -21,7 +21,7 @@ import (
 func TestItAuthenticatesByHeaderToken(t *testing.T) {
 	b := test.Boiler(t)
 
-	srv, err := boiler.Resolve[*ohttp.Http](b)
+	srv, err := boiler.Resolve[*whttp.HTTP](b)
 	require.Nil(t, err)
 	jwt, err := boiler.Resolve[*jwt.Jwt](b)
 	require.Nil(t, err)
@@ -40,7 +40,7 @@ func TestItAuthenticatesByHeaderToken(t *testing.T) {
 func TestItAuthenticatesByHeaderCookie(t *testing.T) {
 	b := test.Boiler(t)
 
-	srv, err := boiler.Resolve[*ohttp.Http](b)
+	srv, err := boiler.Resolve[*whttp.HTTP](b)
 	require.Nil(t, err)
 	jwt, err := boiler.Resolve[*jwt.Jwt](b)
 	require.Nil(t, err)
@@ -64,7 +64,7 @@ func TestItAuthenticatesByHeaderCookie(t *testing.T) {
 func TestItRefreshesAnExpiredTokenWithValidRefreshToken(t *testing.T) {
 	b := test.Boiler(t)
 
-	srv := boiler.MustResolve[*ohttp.Http](b)
+	srv := boiler.MustResolve[*whttp.HTTP](b)
 	jwt := boiler.MustResolve[*jwt.Jwt](b)
 	users := boiler.MustResolve[*users.Users](b)
 
@@ -112,7 +112,7 @@ func TestItRefreshesAnExpiredTokenWithValidRefreshToken(t *testing.T) {
 func TestItRefreshesWithNoTokenButValidRefresh(t *testing.T) {
 	b := test.Boiler(t)
 
-	srv := boiler.MustResolve[*ohttp.Http](b)
+	srv := boiler.MustResolve[*whttp.HTTP](b)
 	users := boiler.MustResolve[*users.Users](b)
 
 	user, _ := test.User(t, b)
@@ -140,7 +140,7 @@ func TestItRefreshesWithNoTokenButValidRefresh(t *testing.T) {
 func TestItRotatesRefreshTokens(t *testing.T) {
 	b := test.Boiler(t)
 
-	srv := boiler.MustResolve[*ohttp.Http](b)
+	srv := boiler.MustResolve[*whttp.HTTP](b)
 	users := boiler.MustResolve[*users.Users](b)
 
 	user, _ := test.User(t, b)
@@ -190,7 +190,7 @@ func TestItRotatesRefreshTokens(t *testing.T) {
 func TestItDoesntRefreshAnExpiredTokenWithInvalidRefreshToken(t *testing.T) {
 	b := test.Boiler(t)
 
-	srv := boiler.MustResolve[*ohttp.Http](b)
+	srv := boiler.MustResolve[*whttp.HTTP](b)
 	jwt := boiler.MustResolve[*jwt.Jwt](b)
 
 	user, _ := test.User(t, b)
