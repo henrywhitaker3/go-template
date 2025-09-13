@@ -8,7 +8,6 @@ require (
 	github.com/docker/go-connections v0.6.0
 	github.com/getsentry/sentry-go v0.35.2
 	github.com/getsentry/sentry-go/echo v0.35.2
-	github.com/go-playground/validator/v10 v10.27.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.7
@@ -19,8 +18,6 @@ require (
 	github.com/henrywhitaker3/windowframe v1.10.1
 	github.com/labstack/echo-contrib v0.17.4
 	github.com/labstack/echo/v4 v4.13.4
-	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.23.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/redis/rueidis v1.0.64
 	github.com/spf13/cobra v1.10.1
@@ -99,7 +96,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.7.5 // indirect
+	github.com/jackc/pgx/v5 v5.7.6 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
