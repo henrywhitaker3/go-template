@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/henrywhitaker3/boiler"
-	"github.com/henrywhitaker3/go-template/internal/http/common"
-	"github.com/henrywhitaker3/go-template/internal/http/validation"
+	"github.com/henrywhitaker3/windowframe/http/common"
+	"github.com/henrywhitaker3/windowframe/http/validation"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
 	"github.com/henrywhitaker3/go-template/internal/users"

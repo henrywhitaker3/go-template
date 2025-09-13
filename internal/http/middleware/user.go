@@ -8,11 +8,12 @@ import (
 	"github.com/getsentry/sentry-go"
 	sentryecho "github.com/getsentry/sentry-go/echo"
 	pjwt "github.com/golang-jwt/jwt/v5"
+	"github.com/henrywhitaker3/ctxgen"
 	"github.com/henrywhitaker3/go-template/internal/config"
-	"github.com/henrywhitaker3/go-template/internal/http/common"
 	"github.com/henrywhitaker3/go-template/internal/jwt"
-	"github.com/henrywhitaker3/windowframe/tracing"
 	"github.com/henrywhitaker3/go-template/internal/users"
+	"github.com/henrywhitaker3/windowframe/http/common"
+	"github.com/henrywhitaker3/windowframe/tracing"
 	"github.com/labstack/echo/v4"
 )
 
@@ -58,7 +59,9 @@ func User(opts UserOpts) echo.MiddlewareFunc {
 				common.SetUserAuthCookie(c, opts.Domain, token)
 				common.SetUserRefreshTokenCookie(c, opts.Domain, newRefresh)
 			}
-			c.SetRequest(c.Request().WithContext(common.SetUser(c.Request().Context(), user)))
+			c.SetRequest(
+				c.Request().WithContext(ctxgen.WithValue(c.Request().Context(), "user", user)),
+			)
 
 			if user != nil {
 				if *opts.Config.Telemetry.Sentry.Enabled {

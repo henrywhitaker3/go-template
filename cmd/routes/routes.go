@@ -5,7 +5,7 @@ import (
 
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/app"
-	"github.com/henrywhitaker3/go-template/internal/http"
+	"github.com/henrywhitaker3/windowframe/http"
 	"github.com/spf13/cobra"
 )
 
@@ -15,11 +15,11 @@ func New(b *boiler.Boiler) *cobra.Command {
 		Short:   "Display all the routes registered for the api",
 		GroupID: "app",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			app.RegisterBase(b)
+			app.RegisterServe(b)
 			b.MustBootstrap()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			server, err := boiler.Resolve[*http.Http](b)
+			server, err := boiler.Resolve[*http.HTTP](b)
 			if err != nil {
 				return err
 			}

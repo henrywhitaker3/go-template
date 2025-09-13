@@ -5,8 +5,8 @@ import (
 
 	"github.com/henrywhitaker3/boiler"
 	"github.com/henrywhitaker3/go-template/internal/app"
-	"github.com/henrywhitaker3/go-template/internal/http"
 	"github.com/henrywhitaker3/go-template/internal/metrics"
+	"github.com/henrywhitaker3/windowframe/http"
 	"github.com/henrywhitaker3/windowframe/workers"
 	"github.com/spf13/cobra"
 )
@@ -35,7 +35,7 @@ func New(b *boiler.Boiler) *cobra.Command {
 			}
 			go runner.Run()
 
-			http, err := boiler.Resolve[*http.Http](b)
+			http, err := boiler.Resolve[*http.HTTP](b)
 			if err != nil {
 				return err
 			}
