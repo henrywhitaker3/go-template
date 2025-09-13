@@ -17,7 +17,7 @@ require (
 	github.com/henrywhitaker3/go-cache v1.1.1
 	github.com/henrywhitaker3/probes v1.0.2
 	github.com/henrywhitaker3/windowframe v1.9.3
-	github.com/jackc/pgx/v5 v5.7.5
+	github.com/jackc/pgx/v5 v5.7.6
 	github.com/labstack/echo-contrib v0.17.4
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/pkg/errors v0.9.1
