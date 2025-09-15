@@ -244,8 +244,8 @@ github.com/henrywhitaker3/probes v1.0.2 h1:NjW/vjQ+ghQy8yJm3x8Cv0HeSkJsgbCl4OeYD
 github.com/henrywhitaker3/probes v1.0.2/go.mod h1:S3oJ1yMCPPAiSZ9nedyxkCviV59tv7ym7WTr5lG+sq4=
 github.com/henrywhitaker3/rueidisleader v1.0.7 h1:rTqvzcd+M4TnWYC2/aGk1cmoVHAwy5VUviPQ91qP4tY=
 github.com/henrywhitaker3/rueidisleader v1.0.7/go.mod h1:NrizpwwEdbM/Ogvl3DOhVgZygSzN+17x/fgxBpgBQ0U=
-github.com/henrywhitaker3/windowframe v1.10.1 h1:axPmmut/dupQmHbEIJy5rYiytgy0m08fhFNHFzm2TI8=
-github.com/henrywhitaker3/windowframe v1.10.1/go.mod h1:866AM354iFYRWL4rA3Z06i/i9O8+jQTlneZPbwejoyY=
+github.com/henrywhitaker3/windowframe v1.10.8 h1:RLRzX6q5mTpH2HYb+PJk2gLjCS7j02ZiuustbT0aUvU=
+github.com/henrywhitaker3/windowframe v1.10.8/go.mod h1:ez/d3mc63zSy5JenQSR+RLVb8UTCvVV8nsFSzVoSO/8=
 github.com/hibiken/asynq v0.25.1 h1:phj028N0nm15n8O2ims+IvJ2gz4k2auvermngh9JhTw=
 github.com/hibiken/asynq v0.25.1/go.mod h1:pazWNOLBu0FEynQRBvHA26qdIKRSmfdIfUm4HdsLmXg=
 github.com/huaweicloud/huaweicloud-sdk-go-obs v3.25.4+incompatible h1:yNjwdvn9fwuN6Ouxr0xHM0cVu03YMUWUyFmu2van/Yc=
