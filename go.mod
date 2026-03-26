@@ -10,7 +10,7 @@ require (
 	github.com/getsentry/sentry-go/echo v0.35.2
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
-	github.com/grafana/pyroscope-go v1.2.7
+	github.com/grafana/pyroscope-go v1.2.8
 	github.com/henrywhitaker3/boiler v1.4.6
 	github.com/henrywhitaker3/ctxgen v1.0.1
 	github.com/henrywhitaker3/go-cache v1.1.1
